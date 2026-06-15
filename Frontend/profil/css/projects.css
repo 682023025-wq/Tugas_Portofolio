@@ -1,0 +1,240 @@
+/* =========================================
+   PROJECTS MENU SPECIFIC STYLES
+   ========================================= */
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.menu-header h3 {
+  font-size: 1.25rem;
+  color: var(--text-dark);
+}
+
+.add-project-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 0.9rem;
+}
+.add-project-btn:hover {
+  background: var(--secondary);
+  transform: translateY(-2px);
+}
+
+/* Table Styles */
+.table-container {
+  background: var(--bg-white);
+  border-radius: 12px;
+  overflow-x: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+}
+.project-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+.project-table th,
+.project-table td {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.project-table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 0.9rem;
+}
+.project-table tr:last-child td {
+  border-bottom: none;
+}
+.project-table tr:hover {
+  background: #f1f5f9;
+}
+
+.tech-badge {
+  display: inline-block;
+  background: #eff6ff;
+  color: var(--primary);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.3rem;
+  margin-bottom: 0.2rem;
+}
+.link-demo {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.link-demo:hover {
+  text-decoration: underline;
+}
+
+.action-cell {
+  text-align: center !important;
+  white-space: nowrap;
+}
+.btn-action {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin: 0 0.2rem;
+  transition: 0.2s;
+  font-weight: 500;
+}
+.btn-edit {
+  background: #eff6ff;
+  color: var(--primary);
+}
+.btn-delete {
+  background: #fef2f2;
+  color: #ef4444;
+}
+.btn-edit:hover {
+  background: var(--primary);
+  color: white;
+}
+.btn-delete:hover {
+  background: #ef4444;
+  color: white;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-content {
+  background: var(--bg-white);
+  width: 90%;
+  max-width: 500px;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h4 {
+  font-size: 1.1rem;
+  color: var(--text-dark);
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-gray);
+  cursor: pointer;
+  line-height: 1;
+}
+.modal-close:hover {
+  color: var(--text-dark);
+}
+
+.modal-content form {
+  padding: 1.5rem;
+}
+.modal-content .form-group {
+  margin-bottom: 1rem;
+}
+.modal-content label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.4rem;
+}
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: 0.3s;
+  font-family: inherit;
+}
+.modal-content input:focus,
+.modal-content textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-gray);
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+.btn-cancel:hover {
+  background: #f1f5f9;
+  color: var(--text-dark);
+}
+.btn-save {
+  padding: 0.75rem 1.5rem;
+  background: var(--primary);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+.btn-save:hover {
+  background: var(--secondary);
+}
