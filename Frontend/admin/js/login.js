@@ -35,8 +35,12 @@ if (loginForm) {
         const errorMsg = document.getElementById('errorMessage');
 
         if (username === 'admin' && password === 'admin123') {
+            // Simpan sesi login ke localStorage
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('username', username);
+            
             alert('Login berhasil! Mengalihkan ke dashboard...');
-            // window.location.href = 'dashboard.html'; 
+            window.location.href = 'dashboard.html';
         } else {
             errorMsg.textContent = 'Username atau password salah. Silakan coba lagi.';
             errorMsg.style.display = 'block';
