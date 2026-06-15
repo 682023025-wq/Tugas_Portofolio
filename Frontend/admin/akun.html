@@ -109,8 +109,13 @@
             
             <div class="form-row">
               <div class="form-group full-width">
-                <label for="fotoUrl">URL Foto Profil</label>
-                <input type="url" id="fotoUrl" placeholder="https://example.com/foto.jpg" />
+                <label for="foto">Foto Profil</label>
+                <input type="file" id="foto" name="foto" accept="image/*" onchange="previewImage(this)" />
+                <div class="image-preview-container" id="previewContainer" style="margin-top: 10px; display: none;">
+                  <p style="font-size: 0.9em; color: #666;">Preview:</p>
+                  <img id="preview-img" src="" alt="Preview Foto" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #ddd; object-fit: cover;" />
+                </div>
+                <small style="color: #666; display: block; margin-top: 5px;">Format: JPG, PNG. Maksimal ukuran disarankan &lt; 500KB agar penyimpanan lokal tidak penuh.</small>
               </div>
             </div>
             
@@ -160,6 +165,7 @@
       </div>
     </main>
 
+    <script src="js/init-data.js"></script>
     <script src="js/base.js"></script>
     <script src="js/akun.js"></script>
   </body>

@@ -5,6 +5,35 @@
 const profileForm = document.getElementById('profileForm');
 const passwordForm = document.getElementById('passwordForm');
 const profilePreview = document.getElementById('profilePreview');
+let currentFotoBase64 = ''; // Store base64 image data
+
+// Preview image function
+function previewImage(input) {
+  const previewContainer = document.getElementById('previewContainer');
+  const previewImg = document.getElementById('preview-img');
+  
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    
+    // Check file size (max 500KB recommended)
+    if (file.size > 500 * 1024) {
+      alert('Ukuran file terlalu besar! Disarankan maksimal 500KB agar penyimpanan lokal tidak penuh.');
+      input.value = ''; // Reset input
+      previewContainer.style.display = 'none';
+      return;
+    }
+    
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+      currentFotoBase64 = e.target.result;
+      previewImg.src = currentFotoBase64;
+      previewContainer.style.display = 'block';
+    };
+    
+    reader.readAsDataURL(file);
+  }
+}
 
 // Load profile data from localStorage
 function loadProfileData() {
@@ -23,7 +52,18 @@ function loadProfileData() {
     document.getElementById('programStudi').value = profile.programStudi || '';
     document.getElementById('semester').value = profile.semester || '';
     document.getElementById('alamat').value = profile.alamat || '';
-    document.getElementById('fotoUrl').value = profile.fotoUrl || '';
+    
+    // Handle foto (could be base64 or URL)
+    if (profile.fotoUrl && profile.fotoUrl.startsWith('data:image')) {
+      currentFotoBase64 = profile.fotoUrl;
+      const previewContainer = document.getElementById('previewContainer');
+      const previewImg = document.getElementById('preview-img');
+      previewImg.src = currentFotoBase64;
+      previewContainer.style.display = 'block';
+    } else if (profile.fotoUrl) {
+      // For backward compatibility with URL
+      currentFotoBase64 = profile.fotoUrl;
+    }
     
     // Show preview
     showProfilePreview(profile);
@@ -104,7 +144,7 @@ profileForm.addEventListener('submit', function(e) {
     programStudi: document.getElementById('programStudi').value,
     semester: document.getElementById('semester').value,
     alamat: document.getElementById('alamat').value,
-    fotoUrl: document.getElementById('fotoUrl').value
+    fotoUrl: currentFotoBase64 // Save base64 image data
   };
   
   localStorage.setItem('profile', JSON.stringify(profile));
