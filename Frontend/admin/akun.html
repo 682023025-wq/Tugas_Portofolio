@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Akun - Admin Portofolio</title>
+    <!-- Font Awesome untuk ikon -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/akun.css" />
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Admin Panel</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <ul>
+          <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+          <li><a href="experience.html"><i class="fas fa-briefcase"></i> Experience</a></li>
+          <li><a href="projects.html"><i class="fas fa-folder"></i> Projects</a></li>
+          <li><a href="skills.html"><i class="fas fa-star"></i> Skills</a></li>
+          <li><a href="akun.html" class="active"><i class="fas fa-user"></i> Akun</a></li>
+          <li><a href="../../index.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-bar">
+        <h1>Kelola Akun</h1>
+        <div class="user-info">
+          <span>Halo, Admin</span>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="form-section">
+          <h3>Ubah Password</h3>
+          <form id="passwordForm" class="data-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="currentPassword">Password Saat Ini</label>
+                <input type="password" id="currentPassword" placeholder="Masukkan password saat ini" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newPassword">Password Baru</label>
+                <input type="password" id="newPassword" placeholder="Masukkan password baru" required />
+              </div>
+              <div class="form-group">
+                <label for="confirmPassword">Konfirmasi Password Baru</label>
+                <input type="password" id="confirmPassword" placeholder="Ulangi password baru" required />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Ubah Password
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="info-section">
+          <h3>Informasi Akun</h3>
+          <div class="info-card">
+            <div class="info-item">
+              <span class="info-label">Username:</span>
+              <span class="info-value">admin</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Role:</span>
+              <span class="info-value">Administrator</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Login:</span>
+              <span class="info-value" id="lastLogin">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="js/base.js"></script>
+    <script src="js/akun.js"></script>
+  </body>
+</html>

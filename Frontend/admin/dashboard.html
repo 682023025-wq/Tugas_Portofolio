@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Admin Portofolio</title>
+    <!-- Font Awesome untuk ikon -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Admin Panel</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <ul>
+          <li><a href="dashboard.html" class="active"><i class="fas fa-home"></i> Dashboard</a></li>
+          <li><a href="experience.html"><i class="fas fa-briefcase"></i> Experience</a></li>
+          <li><a href="projects.html"><i class="fas fa-folder"></i> Projects</a></li>
+          <li><a href="skills.html"><i class="fas fa-star"></i> Skills</a></li>
+          <li><a href="akun.html"><i class="fas fa-user"></i> Akun</a></li>
+          <li><a href="../../index.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-bar">
+        <h1>Dashboard</h1>
+        <div class="user-info">
+          <span>Halo, Admin</span>
+        </div>
+      </header>
+
+      <div class="dashboard-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-briefcase"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="experience-count">0</h3>
+              <p>Pengalaman</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-folder"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="projects-count">0</h3>
+              <p>Proyek</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="skills-count">0</h3>
+              <p>Skills</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="quick-actions">
+          <h3>Aksi Cepat</h3>
+          <div class="action-buttons">
+            <a href="experience.html" class="btn btn-primary">
+              <i class="fas fa-plus"></i> Tambah Pengalaman
+            </a>
+            <a href="projects.html" class="btn btn-primary">
+              <i class="fas fa-plus"></i> Tambah Proyek
+            </a>
+            <a href="skills.html" class="btn btn-primary">
+              <i class="fas fa-plus"></i> Tambah Skill
+            </a>
+          </div>
+        </div>
+
+        <div class="recent-data">
+          <h3>Data Terbaru dari Portofolio</h3>
+          <div class="data-sections">
+            <section class="data-section">
+              <h4><i class="fas fa-briefcase"></i> Pengalaman Terbaru</h4>
+              <div id="recent-experience" class="data-list"></div>
+            </section>
+            <section class="data-section">
+              <h4><i class="fas fa-folder"></i> Proyek Terbaru</h4>
+              <div id="recent-projects" class="data-list"></div>
+            </section>
+            <section class="data-section">
+              <h4><i class="fas fa-star"></i> Skills</h4>
+              <div id="skills-list" class="data-list"></div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="js/base.js"></script>
+    <script src="js/dashboard.js"></script>
+  </body>
+</html>
