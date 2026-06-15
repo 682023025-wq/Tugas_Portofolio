@@ -1,0 +1,169 @@
+/* =========================================
+   MODERN LOGIN PAGE (BULLETPROOF VERSION)
+   ========================================= */
+body {
+  background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+  color: var(--text-dark);
+  line-height: 1.6;
+  font-size: 16px;
+}
+/* Memaksa font modern agar tidak fallback ke serif */
+.login-wrapper, .login-wrapper * {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+}
+
+.login-wrapper {
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.login-box {
+  background: #ffffff;
+  padding: 1rem;
+  padding-left:  2rem; 
+  padding-right: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-top {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  transition: 0.3s;
+}
+.login-back:hover { color: #2563eb; }
+
+.login-title {
+  font-size: 1.5rem;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+  font-weight: 700;
+}
+
+.login-subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.login-input-group {
+  margin-bottom: 1.25rem;
+}
+
+.login-input-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.login-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-icon-left {
+  position: absolute;
+  left: 1rem;
+  fill:currentColor;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 1;
+}
+.login-icon-svg {
+  margin: 0.5rem;
+}
+
+.login-input-wrap input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.3s ease;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.login-input-wrap input.has-toggle {
+  padding-right: 3rem;
+  padding-left: 1rem;
+}
+
+.login-input-wrap input:not(.has-toggle) {
+  padding-left: 1rem;
+}
+
+.login-input-wrap input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.login-eye-btn {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  z-index: 1;
+}
+.login-eye-btn:hover {
+  color: #2563eb;
+}
+
+/* Tombol Masuk yang dipaksa styling-nya */
+.login-submit-btn {
+  width: 100%;
+  padding: 0.85rem;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.login-submit-btn:hover {
+  background-color: #1e40af;
+  transform: translateY(-2px);
+}
+
+.login-error {
+  color: #ef4444;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 1rem;
+  display: none;
+  background: #fef2f2;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
