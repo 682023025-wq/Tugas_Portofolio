@@ -41,6 +41,88 @@
       </header>
 
       <div class="page-content">
+        <!-- Form Data Diri -->
+        <div class="form-section">
+          <h3>Data Diri</h3>
+          <form id="profileForm" class="data-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="namaLengkap">Nama Lengkap</label>
+                <input type="text" id="namaLengkap" placeholder="Masukkan nama lengkap" required />
+              </div>
+              <div class="form-group">
+                <label for="namaPanggilan">Nama Panggilan</label>
+                <input type="text" id="namaPanggilan" placeholder="Masukkan nama panggilan" required />
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="tempatLahir">Tempat Lahir</label>
+                <input type="text" id="tempatLahir" placeholder="Tempat lahir" required />
+              </div>
+              <div class="form-group">
+                <label for="tanggalLahir">Tanggal Lahir</label>
+                <input type="date" id="tanggalLahir" required />
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="contoh@email.com" required />
+              </div>
+              <div class="form-group">
+                <label for="telepon">Telepon / WhatsApp</label>
+                <input type="tel" id="telepon" placeholder="08xxxxxxxxxx" required />
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="universitas">Universitas</label>
+                <input type="text" id="universitas" placeholder="Nama universitas" required />
+              </div>
+              <div class="form-group">
+                <label for="fakultas">Fakultas</label>
+                <input type="text" id="fakultas" placeholder="Nama fakultas" required />
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="programStudi">Program Studi</label>
+                <input type="text" id="programStudi" placeholder="Jurusan/Prodi" required />
+              </div>
+              <div class="form-group">
+                <label for="semester">Semester</label>
+                <input type="number" id="semester" placeholder="Contoh: 5" min="1" max="14" required />
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group full-width">
+                <label for="alamat">Alamat</label>
+                <textarea id="alamat" rows="3" placeholder="Alamat lengkap" required></textarea>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group full-width">
+                <label for="fotoUrl">URL Foto Profil</label>
+                <input type="url" id="fotoUrl" placeholder="https://example.com/foto.jpg" />
+              </div>
+            </div>
+            
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="saveProfileBtn">
+                <i class="fas fa-save"></i> Simpan Data Diri
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Form Ubah Password -->
         <div class="form-section">
           <h3>Ubah Password</h3>
           <form id="passwordForm" class="data-form">
@@ -68,21 +150,11 @@
           </form>
         </div>
 
+        <!-- Preview Data -->
         <div class="info-section">
-          <h3>Informasi Akun</h3>
-          <div class="info-card">
-            <div class="info-item">
-              <span class="info-label">Username:</span>
-              <span class="info-value">admin</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Role:</span>
-              <span class="info-value">Administrator</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Last Login:</span>
-              <span class="info-value" id="lastLogin">-</span>
-            </div>
+          <h3>Preview Data Diri</h3>
+          <div class="info-card" id="profilePreview">
+            <p style="color: var(--text-gray); text-align: center;">Belum ada data yang disimpan</p>
           </div>
         </div>
       </div>
