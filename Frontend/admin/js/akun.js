@@ -2,7 +2,116 @@
 // AKUN PAGE LOGIC
 // =========================================
 
+const profileForm = document.getElementById('profileForm');
 const passwordForm = document.getElementById('passwordForm');
+const profilePreview = document.getElementById('profilePreview');
+
+// Load profile data from localStorage
+function loadProfileData() {
+  const profile = JSON.parse(localStorage.getItem('profile') || '{}');
+  
+  if (Object.keys(profile).length > 0) {
+    // Fill form fields
+    document.getElementById('namaLengkap').value = profile.namaLengkap || '';
+    document.getElementById('namaPanggilan').value = profile.namaPanggilan || '';
+    document.getElementById('tempatLahir').value = profile.tempatLahir || '';
+    document.getElementById('tanggalLahir').value = profile.tanggalLahir || '';
+    document.getElementById('email').value = profile.email || '';
+    document.getElementById('telepon').value = profile.telepon || '';
+    document.getElementById('universitas').value = profile.universitas || '';
+    document.getElementById('fakultas').value = profile.fakultas || '';
+    document.getElementById('programStudi').value = profile.programStudi || '';
+    document.getElementById('semester').value = profile.semester || '';
+    document.getElementById('alamat').value = profile.alamat || '';
+    document.getElementById('fotoUrl').value = profile.fotoUrl || '';
+    
+    // Show preview
+    showProfilePreview(profile);
+  }
+}
+
+// Show profile preview
+function showProfilePreview(profile) {
+  if (!profile || Object.keys(profile).length === 0) {
+    profilePreview.innerHTML = '<p style="color: var(--text-gray); text-align: center;">Belum ada data yang disimpan</p>';
+    return;
+  }
+  
+  const fotoDisplay = profile.fotoUrl 
+    ? `<img src="${profile.fotoUrl}" alt="Foto Profil" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem;" />`
+    : '<div style="width: 150px; height: 150px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 3rem; color: #94a3b8;"><i class="fas fa-user"></i></div>';
+  
+  profilePreview.innerHTML = `
+    <div style="text-align: center;">
+      ${fotoDisplay}
+    </div>
+    <div class="info-item">
+      <span class="info-label">Nama Lengkap:</span>
+      <span class="info-value">${profile.namaLengkap || '-'}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Nama Panggilan:</span>
+      <span class="info-value">${profile.namaPanggilan || '-'}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Tempat, Tanggal Lahir:</span>
+      <span class="info-value">${profile.tempatLahir || ''}${profile.tanggalLahir ? ', ' + new Date(profile.tanggalLahir).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Email:</span>
+      <span class="info-value">${profile.email || '-'}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Telepon/WA:</span>
+      <span class="info-value">${profile.telepon || '-'}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Universitas:</span>
+      <span class="info-value">${profile.universitas || '-'}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Fakultas:</span>
+      <span class="info-value">${profile.fakultas || '-'}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Program Studi:</span>
+      <span class="info-value">${profile.programStudi || '-'}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Semester:</span>
+      <span class="info-value">${profile.semester ? 'Semester ' + profile.semester : '-'}</span>
+    </div>
+    <div class="info-item" style="flex-direction: column; align-items: flex-start;">
+      <span class="info-label">Alamat:</span>
+      <span class="info-value">${profile.alamat || '-'}</span>
+    </div>
+  `;
+}
+
+// Handle profile form submit
+profileForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const profile = {
+    namaLengkap: document.getElementById('namaLengkap').value,
+    namaPanggilan: document.getElementById('namaPanggilan').value,
+    tempatLahir: document.getElementById('tempatLahir').value,
+    tanggalLahir: document.getElementById('tanggalLahir').value,
+    email: document.getElementById('email').value,
+    telepon: document.getElementById('telepon').value,
+    universitas: document.getElementById('universitas').value,
+    fakultas: document.getElementById('fakultas').value,
+    programStudi: document.getElementById('programStudi').value,
+    semester: document.getElementById('semester').value,
+    alamat: document.getElementById('alamat').value,
+    fotoUrl: document.getElementById('fotoUrl').value
+  };
+  
+  localStorage.setItem('profile', JSON.stringify(profile));
+  showProfilePreview(profile);
+  
+  alert('Data diri berhasil disimpan!');
+});
 
 // Handle password change form
 passwordForm.addEventListener('submit', function(e) {
@@ -12,13 +121,17 @@ passwordForm.addEventListener('submit', function(e) {
   const newPassword = document.getElementById('newPassword').value;
   const confirmPassword = document.getElementById('confirmPassword').value;
   
-  // Simple validation (in real app, this would check against backend)
-  if (currentPassword === 'admin123') {
+  // Get stored password or default
+  const storedPassword = localStorage.getItem('adminPassword') || 'admin123';
+  
+  if (currentPassword === storedPassword) {
     if (newPassword === confirmPassword) {
       if (newPassword.length >= 6) {
+        localStorage.setItem('adminPassword', newPassword);
         alert('Password berhasil diubah! Silakan login ulang dengan password baru.');
         passwordForm.reset();
-        // In real app, redirect to login or update session
+        // Redirect to login
+        window.location.href = 'login.html';
       } else {
         alert('Password baru minimal 6 karakter!');
       }
@@ -30,16 +143,7 @@ passwordForm.addEventListener('submit', function(e) {
   }
 });
 
-// Display last login time
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-  const lastLoginEl = document.getElementById('lastLogin');
-  const now = new Date();
-  const formattedDate = now.toLocaleDateString('id-ID', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-  lastLoginEl.textContent = formattedDate;
+  loadProfileData();
 });
