@@ -16,7 +16,11 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -191,8 +195,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  padding: 0.65rem 1.75rem;
+  border-radius: 50px;
   text-decoration: none;
   font-weight: 600;
   transition: 0.3s;
@@ -277,6 +281,12 @@ body {
 /* =========================================
    RESPONSIVE
    ========================================= */
+@media (max-width: 1024px) {
+  .dashboard-content {
+    padding: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
@@ -291,11 +301,42 @@ body {
     margin-left: 0;
   }
   
+  .top-bar {
+    padding: 1rem;
+  }
+  
+  .top-bar h1 {
+    font-size: 1.5rem;
+  }
+  
   .stats-grid {
     grid-template-columns: 1fr;
   }
   
   .data-sections {
     grid-template-columns: 1fr;
+  }
+  
+  .dashboard-content {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-header h2 {
+    font-size: 1.25rem;
+  }
+  
+  .top-bar h1 {
+    font-size: 1.25rem;
+  }
+  
+  .btn {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .stat-info h3 {
+    font-size: 1.75rem;
   }
 }

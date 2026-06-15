@@ -166,6 +166,12 @@
   background: #dc2626;
 }
 
+@media (max-width: 1024px) {
+  .page-content {
+    padding: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .page-content {
     padding: 1rem;
@@ -173,5 +179,26 @@
   
   .data-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-section h3,
+  .table-section h3 {
+    font-size: 1.1rem;
+  }
+  
+  .btn-sm {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+  }
+  
+  .data-card-tags {
+    gap: 0.3rem;
+  }
+  
+  .tag {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
   }
 }
