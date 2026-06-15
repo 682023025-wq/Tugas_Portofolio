@@ -1,12 +1,21 @@
 /* =========================================
    MODERN LOGIN PAGE (BULLETPROOF VERSION)
    ========================================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
 body {
   background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
-  color: var(--text-dark);
+  color: #0f172a;
   line-height: 1.6;
   font-size: 16px;
 }
+
 /* Memaksa font modern agar tidak fallback ke serif */
 .login-wrapper, .login-wrapper * {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
@@ -166,4 +175,14 @@ body {
   padding: 0.6rem;
   border-radius: 8px;
   border: 1px solid #fecaca;
+}
+
+@media (max-width: 480px) {
+  .login-box {
+    padding: 1.5rem;
+  }
+  
+  .login-title {
+    font-size: 1.25rem;
+  }
 }
