@@ -12,50 +12,79 @@ def get_profil():
     try:
         db = Database()
         
-        # 1. Ambil data profil utama
-        profile_query = """
-            SELECT p.*, u.username 
-            FROM profiles p 
-            JOIN users u ON p.user_id = u.id 
+        # 1. Ambil data profil utama + semua data pendukung dalam 1 query besar
+        # Ini lebih efisien karena hanya 1x koneksi ke database
+        main_query = """
+            SELECT 
+                p.*, u.username,
+                COALESCE(
+                    JSON_ARRAYAGG(
+                        DISTINCT JSON_OBJECT(
+                            'id', pr.id,
+                            'judul', pr.judul,
+                            'deskripsi', pr.deskripsi,
+                            'gambar_url', pr.gambar_url,
+                            'link_project', pr.link_project,
+                            'created_at', DATE_FORMAT(pr.created_at, '%Y-%m-%d %H:%i:%s')
+                        )
+                    ), '[]'
+                ) AS projects,
+                COALESCE(
+                    JSON_ARRAYAGG(
+                        DISTINCT JSON_OBJECT(
+                            'id', s.id,
+                            'nama_skill', s.nama_skill,
+                            'icon_class', s.icon_class
+                        )
+                    ), '[]'
+                ) AS skills,
+                COALESCE(
+                    JSON_ARRAYAGG(
+                        DISTINCT JSON_OBJECT(
+                            'id', e.id,
+                            'posisi', e.posisi,
+                            'perusahaan', e.perusahaan,
+                            'durasi', e.durasi,
+                            'deskripsi', e.deskripsi,
+                            'created_at', DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s')
+                        )
+                    ), '[]'
+                ) AS experiences
+            FROM profiles p
+            JOIN users u ON p.user_id = u.id
+            LEFT JOIN projects pr ON p.user_id = pr.user_id
+            LEFT JOIN skills s ON p.user_id = s.user_id
+            LEFT JOIN experiences e ON p.user_id = e.user_id
             WHERE u.role = 'admin'
+            GROUP BY p.id, u.username
             LIMIT 1
         """
-        profile = db.execute_query(profile_query, fetch=True)
+        result = db.execute_query(main_query, fetch=True)
         
-        if not profile:
+        if not result:
             return jsonify({'success': True, 'data': None}), 200
         
-        user_id = profile[0]['user_id']
+        row = result[0]
         
-        # 2. Ambil data pendukung dalam satu request (lebih efisien)
-        projects_query = """
-            SELECT id, judul, deskripsi, gambar_url, link_project, created_at 
-            FROM projects WHERE user_id = %s ORDER BY created_at DESC
-        """
-        skills_query = """
-            SELECT id, nama_skill, icon_class 
-            FROM skills WHERE user_id = %s
-        """
-        experiences_query = """
-            SELECT id, posisi, perusahaan, durasi, deskripsi, created_at 
-            FROM experiences WHERE user_id = %s ORDER BY created_at DESC
-        """
+        # Parse JSON dari MySQL
+        import json
+        profile_data = dict(row)
+        profile_data['projects'] = json.loads(row['projects']) if row['projects'] else []
+        profile_data['skills'] = json.loads(row['skills']) if row['skills'] else []
+        profile_data['experiences'] = json.loads(row['experiences']) if row['experiences'] else []
         
-        projects = db.execute_query(projects_query, (user_id,), fetch=True) or []
-        skills = db.execute_query(skills_query, (user_id,), fetch=True) or []
-        experiences = db.execute_query(experiences_query, (user_id,), fetch=True) or []
+        # Hapus field user_id dari response jika tidak diperlukan
+        if 'user_id' in profile_data:
+            del profile_data['user_id']
         
         return jsonify({
             'success': True,
-            'data': {
-                'profile': profile[0],
-                'projects': projects,
-                'skills': skills,
-                'experiences': experiences
-            }
+            'data': profile_data
         }), 200
         
     except Exception as e:
+        import logging
+        logging.error(f"Error in get_profil: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 
