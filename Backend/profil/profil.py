@@ -12,66 +12,53 @@ def get_profil():
     try:
         db = Database()
         
-        # 1. Ambil data profil utama + semua data pendukung dalam 1 query besar
-        # Ini lebih efisien karena hanya 1x koneksi ke database
-        main_query = """
-            SELECT 
-                p.*, u.username,
-                COALESCE(
-                    JSON_ARRAYAGG(
-                        DISTINCT JSON_OBJECT(
-                            'id', pr.id,
-                            'judul', pr.judul,
-                            'deskripsi', pr.deskripsi,
-                            'gambar_url', pr.gambar_url,
-                            'link_project', pr.link_project,
-                            'created_at', DATE_FORMAT(pr.created_at, '%Y-%m-%d %H:%i:%s')
-                        )
-                    ), '[]'
-                ) AS projects,
-                COALESCE(
-                    JSON_ARRAYAGG(
-                        DISTINCT JSON_OBJECT(
-                            'id', s.id,
-                            'nama_skill', s.nama_skill,
-                            'icon_class', s.icon_class
-                        )
-                    ), '[]'
-                ) AS skills,
-                COALESCE(
-                    JSON_ARRAYAGG(
-                        DISTINCT JSON_OBJECT(
-                            'id', e.id,
-                            'posisi', e.posisi,
-                            'perusahaan', e.perusahaan,
-                            'durasi', e.durasi,
-                            'deskripsi', e.deskripsi,
-                            'created_at', DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s')
-                        )
-                    ), '[]'
-                ) AS experiences
+        # 1. Ambil data profil utama
+        profile_query = """
+            SELECT p.*, u.username 
             FROM profiles p
             JOIN users u ON p.user_id = u.id
-            LEFT JOIN projects pr ON p.user_id = pr.user_id
-            LEFT JOIN skills s ON p.user_id = s.user_id
-            LEFT JOIN experiences e ON p.user_id = e.user_id
             WHERE u.role = 'admin'
-            GROUP BY p.id, u.username
             LIMIT 1
         """
-        result = db.execute_query(main_query, fetch=True)
+        profile_result = db.execute_query(profile_query, fetch=True)
         
-        if not result:
+        if not profile_result:
             return jsonify({'success': True, 'data': None}), 200
         
-        row = result[0]
-        
-        # Parse JSON dari MySQL
-        import json
+        row = profile_result[0]
+        user_id = row['user_id']
         profile_data = dict(row)
-        profile_data['projects'] = json.loads(row['projects']) if row['projects'] else []
-        profile_data['skills'] = json.loads(row['skills']) if row['skills'] else []
-        profile_data['experiences'] = json.loads(row['experiences']) if row['experiences'] else []
+        
+        # 2. Ambil skills
+        skills_query = """
+            SELECT id, nama_skill, icon_class 
+            FROM skills 
+            WHERE user_id = %s
+        """
+        skills_result = db.execute_query(skills_query, (user_id,), fetch=True)
+        profile_data['skills'] = [dict(s) for s in skills_result] if skills_result else []
+        
+        # 3. Ambil experiences
+        exp_query = """
+            SELECT id, posisi, perusahaan, durasi, deskripsi, 
+                   DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as created_at
+            FROM experiences 
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+        """
+        exp_result = db.execute_query(exp_query, (user_id,), fetch=True)
+        profile_data['experiences'] = [dict(e) for e in exp_result] if exp_result else []
+        
+        # 4. Ambil projects
+        proj_query = """
+            SELECT id, judul, deskripsi, gambar_url, link_project,
+                   DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as created_at
+            FROM projects 
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+        """
+        proj_result = db.execute_query(proj_query, (user_id,), fetch=True)
+        profile_data['projects'] = [dict(p) for p in proj_result] if proj_result else []
         
         # Hapus field user_id dari response jika tidak diperlukan
         if 'user_id' in profile_data:
