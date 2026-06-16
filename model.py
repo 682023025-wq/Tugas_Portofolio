@@ -1,6 +1,12 @@
 import mysql.connector
 from mysql.connector import pooling
 from config import Config
+import time
+import logging
+
+# Konfigurasi logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class Database:
     _instance = None
@@ -26,6 +32,7 @@ class Database:
     
     def execute_query(self, query, params=None, fetch=False):
         """Menjalankan query dengan opsi fetch untuk SELECT"""
+        start_time = time.time()
         conn = self.get_connection()
         cursor = conn.cursor(dictionary=True)
         try:
@@ -35,6 +42,9 @@ class Database:
             else:
                 conn.commit()
                 result = cursor.lastrowid if cursor.lastrowid else True
+            
+            elapsed = time.time() - start_time
+            logger.debug(f"Query executed in {elapsed:.3f}s: {query[:50]}...")
             return result
         except Exception as e:
             conn.rollback()
