@@ -4,7 +4,8 @@ from Backend.admin.login import token_required
 
 skills_bp = Blueprint('skills', __name__)
 
-@skills_bp.route('/api/skills', methods=['GET'])
+# ✅ PERBAIKAN: Hapus '/api' di depan route
+@skills_bp.route('/skills', methods=['GET'])
 def get_skills():
     """Mengambil semua skills (publik)"""
     try:
@@ -27,7 +28,7 @@ def get_skills():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@skills_bp.route('/api/skills/<int:id>', methods=['GET'])
+@skills_bp.route('/skills/<int:id>', methods=['GET'])
 def get_skill_by_id(id):
     """Mengambil satu skill berdasarkan ID"""
     try:
@@ -47,7 +48,7 @@ def get_skill_by_id(id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@skills_bp.route('/api/skills', methods=['POST'])
+@skills_bp.route('/skills', methods=['POST'])
 @token_required
 def create_skill(current_user):
     """Create skill baru"""
@@ -82,7 +83,7 @@ def create_skill(current_user):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@skills_bp.route('/api/skills/<int:id>', methods=['PUT'])
+@skills_bp.route('/skills/<int:id>', methods=['PUT'])
 @token_required
 def update_skill(current_user, id):
     """Update skill"""
@@ -122,7 +123,7 @@ def update_skill(current_user, id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@skills_bp.route('/api/skills/<int:id>', methods=['DELETE'])
+@skills_bp.route('/skills/<int:id>', methods=['DELETE'])
 @token_required
 def delete_skill(current_user, id):
     """Delete skill"""

@@ -113,12 +113,14 @@ def login():
     except Exception as e:
         logger.error(f"[LOGIN ERROR] {str(e)}")
         return jsonify({'error': 'Terjadi kesalahan pada server'}), 500
-
 @login_bp.route('/logout', methods=['POST'])
 def logout():
     """Endpoint untuk logout"""
+    # Hapus semua data session di server-side
     session.clear()
+    
     response = jsonify({'message': 'Logout berhasil'})
+    # Hapus cookie session browser
     response.delete_cookie('session') 
     return response, 200
 

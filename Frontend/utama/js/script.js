@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('current-year').textContent = new Date().getFullYear();
 
     try {
-        const response = await fetch('/api/profil');
+        const response = await fetch('/api/utama');
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
         
         const res = await response.json();

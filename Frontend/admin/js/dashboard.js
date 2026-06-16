@@ -5,21 +5,51 @@
 (function() {
     'use strict';
 
-    // Definisi API Wrapper (scoped dalam IIFE)
+    // Helper untuk mendapatkan token (Sesuaikan dengan cara login kamu menyimpan token)
+    function getAuthToken() {
+        // Coba cek localStorage dulu, kalau tidak ada coba sessionStorage
+        return localStorage.getItem('authToken') || sessionStorage.getItem('auth_token');
+    }
+
+    // Definisi API Wrapper (Scoped dalam IIFE)
     const DashboardAPI = {
         async getStats() {
+            const token = getAuthToken();
+            if (!token) throw new Error('Silakan login kembali');
+
             const res = await fetch('/api/dashboard/stats', { 
-                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('auth_token')}` } 
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                } 
             });
+            
+            if (res.status === 401) {
+                window.location.href = '../../index.html'; // Redirect jika token invalid
+                throw new Error('Sesi berakhir');
+            }
             if (!res.ok) throw new Error('Gagal memuat statistik');
+            
             return await res.json();
         },
         
         async getRecentActivity() {
+            const token = getAuthToken();
+            if (!token) throw new Error('Silakan login kembali');
+
             const res = await fetch('/api/dashboard/recent', { 
-                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('auth_token')}` } 
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                } 
             });
+
+            if (res.status === 401) {
+                window.location.href = '../../index.html';
+                throw new Error('Sesi berakhir');
+            }
             if (!res.ok) throw new Error('Gagal memuat aktivitas terbaru');
+            
             return await res.json();
         }
     };
@@ -30,13 +60,20 @@
             const statsResponse = await DashboardAPI.getStats();
             const stats = statsResponse.data || {};
             
-            document.getElementById('experience-count').textContent = stats.experiences_count ?? 0;
-            document.getElementById('projects-count').textContent = stats.projects_count ?? 0;
-            document.getElementById('skills-count').textContent = stats.skills_count ?? 0;
+            // Safe update DOM elements
+            const updateText = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val ?? 0;
+            };
+
+            updateText('experience-count', stats.experiences_count);
+            updateText('projects-count', stats.projects_count);
+            updateText('skills-count', stats.skills_count);
             
             // Update nama admin di header jika tersedia
             if (stats.admin_name) {
-                document.getElementById('admin-name').textContent = `Halo, ${stats.admin_name}`;
+                const adminNameEl = document.getElementById('admin-name');
+                if (adminNameEl) adminNameEl.textContent = `Halo, ${stats.admin_name}`;
             }
             
             // 2. Load Recent Activity
@@ -48,28 +85,35 @@
             
             // Render Recent Experience
             const recentExpEl = document.getElementById('recent-experience');
-            recentExpEl.innerHTML = experiences.length > 0 
-              ? experiences.slice(0, 3).map(exp => `
-                  <div class="data-item">
-                    <h5>${escapeHtml(exp.posisi)}</h5>
-                    <p>${escapeHtml(exp.perusahaan)} | ${escapeHtml(exp.durasi)}</p>
-                  </div>`).join('')
-              : '<p class="empty-state">Belum ada data pengalaman</p>';
+            if (recentExpEl) {
+                recentExpEl.innerHTML = experiences.length > 0 
+                  ? experiences.slice(0, 3).map(exp => `
+                      <div class="data-item">
+                        <h5>${escapeHtml(exp.posisi)}</h5>
+                        <p>${escapeHtml(exp.perusahaan)} | ${escapeHtml(exp.durasi)}</p>
+                      </div>`).join('')
+                  : '<p class="empty-state">Belum ada data pengalaman</p>';
+            }
             
             // Render Recent Projects
             const recentProjEl = document.getElementById('recent-projects');
-            recentProjEl.innerHTML = projects.length > 0 
-              ? projects.slice(0, 3).map(proj => `
-                  <div class="data-item">
-                    <h5>${escapeHtml(proj.judul)}</h5>
-                    <p>${escapeHtml(proj.deskripsi?.substring(0, 80))}...</p>
-                  </div>`).join('')
-              : '<p class="empty-state">Belum ada data proyek</p>';
+            if (recentProjEl) {
+                recentProjEl.innerHTML = projects.length > 0 
+                  ? projects.slice(0, 3).map(proj => `
+                      <div class="data-item">
+                        <h5>${escapeHtml(proj.judul)}</h5>
+                        <p>${escapeHtml(proj.deskripsi?.substring(0, 80))}...</p>
+                      </div>`).join('')
+                  : '<p class="empty-state">Belum ada data proyek</p>';
+            }
 
         } catch (error) {
             console.error('Dashboard Error:', error);
-            document.querySelector('.dashboard-content').innerHTML = 
-              `<div class="error-box"><i class="fas fa-exclamation-triangle"></i> Gagal memuat data: ${error.message}</div>`;
+            const contentEl = document.querySelector('.dashboard-content');
+            if (contentEl) {
+                contentEl.innerHTML = 
+                  `<div class="error-box"><i class="fas fa-exclamation-triangle"></i> Gagal memuat data: ${error.message}</div>`;
+            }
         }
     }
 
@@ -90,16 +134,24 @@
         loadDashboardData();
         
         // Handle Logout
-        document.getElementById('logout-btn')?.addEventListener('click', async (e) => {
-            e.preventDefault();
-            try {
-                await fetch('/api/logout', { method: 'POST' });
-                sessionStorage.clear();
-                window.location.href = '../../index.html';
-            } catch (err) {
-                alert('Gagal logout. Silakan hapus cache browser.');
-            }
-        });
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await fetch('/api/logout', { method: 'POST' });
+                } catch (err) {
+                    console.error('Logout API error', err);
+                } finally {
+                    // Bersihkan semua penyimpanan lokal
+                    localStorage.removeItem('authToken');
+                    sessionStorage.clear();
+                    
+                    // Redirect ke index.html (halaman utama)
+                    window.location.href = '../../index.html';
+                }
+            });
+        }
     });
 
 })();

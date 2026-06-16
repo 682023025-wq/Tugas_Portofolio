@@ -1,5 +1,6 @@
 // =========================================
-// SKILLS PAGE LOGIC - CRUD Operations with Backend API
+// SKILLS PAGE LOGIC - CRUD Operations
+// NOTE: Menggunakan SkillsAPI dari api.js
 // =========================================
 
 const skillForm = document.getElementById('skillForm');
@@ -15,15 +16,19 @@ async function loadSkills() {
     const response = await SkillsAPI.getAll();
     const skills = response.data || [];
     
+    if (!skillListEl) return; // Safety check
+
     if (skills.length === 0) {
-      skillListEl.innerHTML = '<p style="color: var(--text-gray);">Belum ada data skills</p>';
+      skillListEl.innerHTML = '<p class="empty-state">Belum ada data skills</p>';
       return;
     }
     
     skillListEl.innerHTML = skills.map((skill) => `
       <div class="skill-card" data-id="${skill.id}">
-        <i class="${skill.icon_class || 'fas fa-code'}"></i>
-        <h4>${skill.nama_skill}</h4>
+        <div class="skill-icon-wrapper">
+          <i class="${skill.icon_class || 'fas fa-code'}"></i>
+        </div>
+        <h4>${escapeHtml(skill.nama_skill)}</h4>
         <div class="skill-card-actions">
           <button class="btn btn-sm btn-edit" onclick="editSkill(${skill.id})">
             <i class="fas fa-edit"></i> Edit
@@ -36,47 +41,51 @@ async function loadSkills() {
     `).join('');
   } catch (error) {
     console.error('Error loading skills:', error);
-    skillListEl.innerHTML = `<p style="color: red;">Gagal memuat data: ${error.message}</p>`;
+    if (skillListEl) {
+        skillListEl.innerHTML = `<p class="error-msg">Gagal memuat data: ${error.message}</p>`;
+    }
   }
 }
 
 // Save skill (add or update)
-skillForm.addEventListener('submit', async function(e) {
-  e.preventDefault();
-  
-  const name = document.getElementById('skillName').value;
-  const icon = document.getElementById('skillIcon').value;
-  
-  const submitBtn = document.getElementById('saveBtn');
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-  
-  try {
-    const data = {
-      nama_skill: name,
-      icon_class: icon
-    };
-    
-    if (isEditing && editingId) {
-      // Update existing
-      await SkillsAPI.update(editingId, data);
-      alert('Skill berhasil diperbarui!');
-    } else {
-      // Add new
-      await SkillsAPI.create(data);
-      alert('Skill berhasil ditambahkan!');
-    }
-    
-    resetForm();
-    loadSkills();
-  } catch (error) {
-    console.error('Error saving skill:', error);
-    alert(`Gagal menyimpan: ${error.message}`);
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = '<i class="fas fa-save"></i> Simpan';
-  }
-});
+if (skillForm) {
+    skillForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById('skillName').value;
+      const icon = document.getElementById('skillIcon').value;
+      
+      const submitBtn = document.getElementById('saveBtn');
+      const originalText = submitBtn.innerHTML;
+      
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+      
+      try {
+        const data = {
+          nama_skill: name,
+          icon_class: icon || 'fas fa-code' // Default icon jika kosong
+        };
+        
+        if (isEditing && editingId) {
+          await SkillsAPI.update(editingId, data);
+          alert('Skill berhasil diperbarui!');
+        } else {
+          await SkillsAPI.create(data);
+          alert('Skill berhasil ditambahkan!');
+        }
+        
+        resetForm();
+        loadSkills();
+      } catch (error) {
+        console.error('Error saving skill:', error);
+        alert(`Gagal menyimpan: ${error.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    });
+}
 
 // Edit skill
 window.editSkill = async function(id) {
@@ -90,8 +99,11 @@ window.editSkill = async function(id) {
     
     isEditing = true;
     editingId = id;
-    document.getElementById('saveBtn').innerHTML = '<i class="fas fa-sync"></i> Update';
-    cancelBtn.style.display = 'inline-flex';
+    
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-sync"></i> Update';
+    
+    if (cancelBtn) cancelBtn.style.display = 'inline-flex';
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (error) {
@@ -115,15 +127,30 @@ window.deleteSkill = async function(id) {
 };
 
 // Cancel edit
-cancelBtn.addEventListener('click', resetForm);
+if (cancelBtn) {
+    cancelBtn.addEventListener('click', resetForm);
+}
 
 function resetForm() {
-  skillForm.reset();
-  document.getElementById('skillId').value = '';
+  if (skillForm) skillForm.reset();
+  
+  const idField = document.getElementById('skillId');
+  if (idField) idField.value = '';
+  
   isEditing = false;
   editingId = null;
-  document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Simpan';
-  cancelBtn.style.display = 'none';
+  
+  const saveBtn = document.getElementById('saveBtn');
+  if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save"></i> Simpan';
+  
+  if (cancelBtn) cancelBtn.style.display = 'none';
+}
+
+// Helper keamanan XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
 // Initialize on page load

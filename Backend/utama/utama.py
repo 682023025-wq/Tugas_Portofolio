@@ -4,16 +4,16 @@ from Backend.admin.login import token_required
 import logging
 
 logger = logging.getLogger(__name__)
-profil_bp = Blueprint('profil', __name__)
+utama_bp = Blueprint('utama', __name__)
 
 
-@profil_bp.route('/profil', methods=['GET'])
+@utama_bp.route('/utama', methods=['GET'])
 def get_profil():
-    """Mengambil SEMUA data profil publik (tanpa auth)"""
+    """Mengambil SEMUA data utama publik (tanpa auth)"""
     try:
         db = Database()
         
-        # 1. Ambil data profil utama + username sekaligus
+        # 1. Ambil data utama utama + username sekaligus
         profile_query = """
             SELECT p.*, u.username 
             FROM profiles p
@@ -65,10 +65,10 @@ def get_profil():
         return jsonify({'error': 'Gagal memuat data profil'}), 500
 
 
-@profil_bp.route('/profil', methods=['PUT'])
+@utama_bp.route('/utama', methods=['PUT'])
 @token_required
 def update_profil(current_user):
-    """Update data profil (hanya untuk admin yang login)"""
+    """Update data utama (hanya untuk admin yang login)"""
     try:
         data = request.get_json()
         if not data:
@@ -96,7 +96,7 @@ def update_profil(current_user):
         if not updates:
             return jsonify({'error': 'Tidak ada field valid yang diupdate'}), 400
         
-        # Cek eksistensi profil
+        # Cek eksistensi utama
         check_query = "SELECT id FROM profiles WHERE user_id = %s"
         existing = db.execute_query(check_query, (current_user,), fetch=True)
         
@@ -119,10 +119,10 @@ def update_profil(current_user):
         return jsonify({'error': 'Gagal mengupdate profil'}), 500
 
 
-@profil_bp.route('/profil', methods=['POST'])
+@utama_bp.route('/utama', methods=['POST'])
 @token_required
 def create_profil(current_user):
-    """Create profil baru"""
+    """Create utama baru"""
     try:
         data = request.get_json()
         if not data:

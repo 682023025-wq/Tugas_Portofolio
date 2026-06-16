@@ -198,15 +198,15 @@ const SkillsAPI = {
     }
 };
 
-// Profile/Akun API calls
+// Profile/profiles API calls
 const ProfileAPI = {
     async get() {
-        const response = await apiRequest('/api/profil');
+        const response = await apiRequest('/api/utama');
         return response;
     },
     
     async update(data) {
-        const response = await apiRequest('/api/profil', {
+        const response = await apiRequest('/api/utama_bp', {
             method: 'PUT',
             body: JSON.stringify(data)
         });
@@ -214,7 +214,7 @@ const ProfileAPI = {
     },
     
     async create(data) {
-        const response = await apiRequest('/api/profil', {
+        const response = await apiRequest('/api/utama_bp', {
             method: 'POST',
             body: JSON.stringify(data)
         });
@@ -224,12 +224,12 @@ const ProfileAPI = {
 
 const AkunAPI = {
     async get() {
-        const response = await apiRequest('/api/akun');
+        const response = await apiRequest('/api/profiles');
         return response;
     },
     
     async update(data) {
-        const response = await apiRequest('/api/akun', {
+        const response = await apiRequest('/api/profiles', {
             method: 'PUT',
             body: JSON.stringify(data)
         });
@@ -237,7 +237,7 @@ const AkunAPI = {
     },
     
     async changePassword(oldPassword, newPassword) {
-        const response = await apiRequest('/api/akun/change-password', {
+        const response = await apiRequest('/api/profiles/change-password', {
             method: 'POST',
             body: JSON.stringify({ old_password: oldPassword, new_password: newPassword })
         });

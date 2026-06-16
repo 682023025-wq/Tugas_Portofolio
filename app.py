@@ -6,11 +6,11 @@ import os
 # Import blueprints
 from Backend.admin.login import login_bp
 from Backend.admin.dashboard import dashboard_bp
-from Backend.admin.akun import akun_bp
+from Backend.admin.profiles import profiles_bp
 from Backend.admin.experience import experience_bp
 from Backend.admin.projects import projects_bp
 from Backend.admin.skills import skills_bp
-from Backend.profil.profil import profil_bp
+from Backend.utama.utama import utama_bp
 from Backend.admin.upload import upload_bp
 
 
@@ -30,18 +30,33 @@ def create_app():
     # Register blueprints
     app.register_blueprint(login_bp, url_prefix='/api')
     app.register_blueprint(dashboard_bp, url_prefix='/api')
-    app.register_blueprint(akun_bp, url_prefix='/api')
+    app.register_blueprint(profiles_bp, url_prefix='/api')
     app.register_blueprint(experience_bp, url_prefix='/api')
     app.register_blueprint(projects_bp, url_prefix='/api')
     app.register_blueprint(skills_bp, url_prefix='/api')
-    app.register_blueprint(profil_bp, url_prefix='/api')
+    app.register_blueprint(utama_bp, url_prefix='/api')
     app.register_blueprint(upload_bp, url_prefix='/api')
     
     # Route untuk serving frontend files
     @app.route('/')
     def index():
-        # PERBAIKAN 2: Karena index.html ada di root, gunakan app.root_path
-        return send_from_directory(app.root_path, 'index.html')
+        # Coba cari di root dulu
+        if os.path.exists(os.path.join(app.root_path, 'index.html')):
+            return send_from_directory(app.root_path, 'index.html')
+        # Jika tidak ada, coba cari di folder Frontend
+        elif os.path.exists(os.path.join(app.root_path, 'Frontend', 'index.html')):
+            return send_from_directory(os.path.join(app.root_path, 'Frontend'), 'index.html')
+        else:
+            return "Error: index.html not found in root or Frontend folder", 404
+    @app.route('/index.html')
+    def index_file():
+        # Logika yang sama untuk permintaan eksplisit /index.html
+        if os.path.exists(os.path.join(app.root_path, 'index.html')):
+            return send_from_directory(app.root_path, 'index.html')
+        elif os.path.exists(os.path.join(app.root_path, 'Frontend', 'index.html')):
+            return send_from_directory(os.path.join(app.root_path, 'Frontend'), 'index.html')
+        else:
+            return "Error: index.html not found", 404
     
     @app.route('/admin/<path:filename>')
     def admin_pages(filename):
