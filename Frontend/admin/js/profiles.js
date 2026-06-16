@@ -5,7 +5,8 @@
 const profileForm = document.getElementById('profileForm');
 const passwordForm = document.getElementById('passwordForm');
 const profilePreview = document.getElementById('profilePreview');
-let currentFotoBase64 = ''; 
+const imageInput = document.getElementById('fotoInput'); // Pastikan ID ini sesuai di HTML
+let currentFotoUrl = ''; // Menyimpan URL final (bukan base64 lagi)
 
 // 1. Preview Image Function
 function previewImage(input) {
@@ -15,42 +16,34 @@ function previewImage(input) {
   if (!input.files || !input.files[0]) return;
   
   const file = input.files[0];
-  if (file.size > 500 * 1024) {
-    alert('Ukuran file terlalu besar! Maksimal 500KB.');
+  if (file.size > 2 * 1024 * 1024) { // Max 2MB
+    alert('Ukuran file terlalu besar! Maksimal 2MB.');
     input.value = ''; 
     return;
   }
   
   const reader = new FileReader();
   reader.onload = function(e) {
-    currentFotoBase64 = e.target.result;
-    if (previewImg) previewImg.src = currentFotoBase64;
+    // Tampilkan preview sementara
+    if (previewImg) previewImg.src = e.target.result;
     if (previewContainer) previewContainer.style.display = 'block';
   };
   reader.readAsDataURL(file);
 }
 
-// 2. Load Profile Data (FIXED DATE & SEMESTER)
+// 2. Load Profile Data
 async function loadProfileData() {
   try {
     const response = await ProfileAPI.get();
     const profile = response.data;
     
     if (profile && Object.keys(profile).length > 0) {
-      // Helper setValue yang cerdas
       const setValue = (id, val) => {
         const el = document.getElementById(id);
         if (!el) return;
-
-        if (el.type === 'date') {
-            // Fix: Konversi ke YYYY-MM-DD agar diterima input HTML
-            if (val) el.value = new Date(val).toISOString().split('T')[0];
-        } else if (el.type === 'number') {
-            // Fix: Ambil angka saja dari "Semester 7" -> "7"
-            el.value = String(val).replace(/\D/g, '');
-        } else {
-            el.value = val || '';
-        }
+        if (el.type === 'date' && val) el.value = new Date(val).toISOString().split('T')[0];
+        else if (el.type === 'number') el.value = String(val).replace(/\D/g, '');
+        else el.value = val || '';
       };
 
       setValue('namaLengkap', profile.nama_lengkap);
@@ -65,12 +58,14 @@ async function loadProfileData() {
       setValue('semester', profile.semester);
       setValue('alamat', profile.alamat);
       
-      // Handle Foto
-      if (profile.foto_url) {
-        currentFotoBase64 = profile.foto_url;
+      // Simpan URL foto lama
+      currentFotoUrl = profile.foto_url || '';
+      
+      // Tampilkan preview foto
+      if (currentFotoUrl) {
         const previewContainer = document.getElementById('previewContainer');
         const previewImg = document.getElementById('preview-img');
-        if (previewImg) previewImg.src = profile.foto_url;
+        if (previewImg) previewImg.src = currentFotoUrl;
         if (previewContainer) previewContainer.style.display = 'block';
       }
       
@@ -99,17 +94,15 @@ function showProfilePreview(profile) {
     <div class="profile-header-preview">${fotoDisplay}</div>
     <div class="profile-details-grid">
       <div class="info-item"><span class="info-label">Nama:</span><span class="info-value">${display(profile.nama_lengkap)}</span></div>
-      <div class="info-item"><span class="info-label">Panggilan:</span><span class="info-value">${display(profile.nama_panggilan)}</span></div>
       <div class="info-item"><span class="info-label">Email:</span><span class="info-value">${display(profile.email)}</span></div>
       <div class="info-item"><span class="info-label">Telepon:</span><span class="info-value">${display(profile.telepon)}</span></div>
       <div class="info-item"><span class="info-label">Univ:</span><span class="info-value">${display(profile.universitas)}</span></div>
-      <div class="info-item"><span class="info-label">Prodi:</span><span class="info-value">${display(profile.prodi)}</span></div>
       <div class="info-item full-width"><span class="info-label">Alamat:</span><span class="info-value">${display(profile.alamat)}</span></div>
     </div>
   `;
 }
 
-// 4. Handle Submit Profile
+// 4. Handle Submit Profile (DENGAN UPLOAD)
 if (profileForm) {
     profileForm.addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -117,10 +110,33 @@ if (profileForm) {
       const originalText = submitBtn.innerHTML;
       
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
       
       try {
-        const profile = {
+        let finalImageUrl = currentFotoUrl; // Default pakai URL lama
+
+        // STEP A: Jika ada file baru dipilih, upload ke Cloudinary dulu
+        if (imageInput && imageInput.files.length > 0) {
+            const formData = new FormData();
+            formData.append('file', imageInput.files[0]);
+            
+            // Panggil endpoint upload backend
+            const uploadRes = await fetch('/api/upload/image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                },
+                body: formData
+            });
+            
+            if (!uploadRes.ok) throw new Error('Gagal upload gambar');
+            
+            const uploadData = await uploadRes.json();
+            finalImageUrl = uploadData.url; // Ambil URL dari Cloudinary
+        }
+
+        // STEP B: Siapkan data profil
+        const profileData = {
           nama_lengkap: document.getElementById('namaLengkap').value,
           nama_panggilan: document.getElementById('namaPanggilan').value,
           tempat_lahir: document.getElementById('tempatLahir').value,
@@ -132,13 +148,17 @@ if (profileForm) {
           prodi: document.getElementById('programStudi').value,
           semester: document.getElementById('semester').value,
           alamat: document.getElementById('alamat').value,
-          foto_url: currentFotoBase64
+          foto_url: finalImageUrl // Gunakan URL hasil upload
         };
         
-        await ProfileAPI.update(profile);
+        // STEP C: Simpan ke Database
+        await ProfileAPI.update(profileData);
+        
         alert('Data berhasil disimpan!');
-        showProfilePreview(profile);
+        loadProfileData(); // Reload data untuk refresh preview
+        
       } catch (error) {
+        console.error(error);
         alert(`Gagal menyimpan: ${error.message}`);
       } finally {
         submitBtn.disabled = false;
