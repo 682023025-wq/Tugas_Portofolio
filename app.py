@@ -66,6 +66,13 @@ def create_app():
     def profil_pages(filename):
         return send_from_directory(os.path.join(app.root_path, 'Frontend', 'profil'), filename)
     
+    @app.route('/favicon.ico')
+    def favicon():
+        return send_from_directory(
+            app.root_path,          # <-- Ganti ke root_path
+            'favicon.ico', 
+            mimetype='image/vnd.microsoft.icon'
+        )
     # Error handlers
     @app.errorhandler(404)
     def not_found(error):

@@ -1,16 +1,74 @@
-// ... (kode helper apiRequest tetap sama) ...
+// =========================================
+// 1. HELPER FUNCTIONS (WAJIB DI ATAS)
+// =========================================
 
-// ==========================================
-// API DEFINITIONS (SESUAI RENAME)
-// ==========================================
+const API_BASE_URL = '';
 
-// 1. DASHBOARD API
+function getAuthToken() {
+    return localStorage.getItem('authToken');
+}
+
+// ✅ TAMBAHKAN KEMBALI FUNGSI INI
+function setAuthToken(token) {
+    localStorage.setItem('authToken', token);
+}
+
+function removeAuthToken() {
+    localStorage.removeItem('authToken');
+}
+
+async function apiRequest(endpoint, options = {}) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const headers = { 'Content-Type': 'application/json', ...options.headers };
+    
+    const token = getAuthToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    
+    try {
+        const response = await fetch(url, { ...options, headers });
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error(`Server Error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Request failed');
+        return data;
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+// =========================================
+// 2. API OBJECTS (NAMA BARU SEMUA)
+// =========================================
+
+// Auth API
+const AuthAPI = {
+    async login(username, password) {
+        const res = await apiRequest('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+        // Simpan token otomatis setelah login berhasil
+        if (res.token) setAuthToken(res.token);
+        return res;
+    },
+    async logout() {
+        removeAuthToken();
+        return apiRequest('/api/logout', { method: 'POST' });
+    },
+    async checkAuth() {
+        return apiRequest('/api/auth/check');
+    }
+};
+
+// Dashboard API
 const DashboardAPI = {
     async getStats() { return apiRequest('/api/dashboard/stats'); },
     async getRecentActivity() { return apiRequest('/api/dashboard/recent'); }
 };
 
-// 2. EXPERIENCE API
+// Experience API
 const ExperienceAPI = {
     async getAll() { return apiRequest('/api/experiences'); },
     async getById(id) { return apiRequest(`/api/experiences/${id}`); },
@@ -19,7 +77,7 @@ const ExperienceAPI = {
     async delete(id) { return apiRequest(`/api/experiences/${id}`, { method: 'DELETE' }); }
 };
 
-// 3. PROJECTS API
+// Projects API
 const ProjectsAPI = {
     async getAll() { return apiRequest('/api/projects'); },
     async getById(id) { return apiRequest(`/api/projects/${id}`); },
@@ -28,7 +86,7 @@ const ProjectsAPI = {
     async delete(id) { return apiRequest(`/api/projects/${id}`, { method: 'DELETE' }); }
 };
 
-// 4. SKILLS API
+// Skills API
 const SkillsAPI = {
     async getAll() { return apiRequest('/api/skills'); },
     async getById(id) { return apiRequest(`/api/skills/${id}`); },
@@ -37,40 +95,32 @@ const SkillsAPI = {
     async delete(id) { return apiRequest(`/api/skills/${id}`, { method: 'DELETE' }); }
 };
 
-// 5. PROFILE API (KHUSUS ADMIN - profiles.py)
-// Dipakai di: js/akun.js atau js/profiles.js (halaman dashboard admin)
-const ProfileAPI = {
+// ==========================================
+// PROFILES & UTAMA API (NAMA BARU)
+// ==========================================
+
+// 1. ProfilesAPI -> Untuk ADMIN (profiles.py)
+const ProfilesAPI = {
     async get() {
-        return apiRequest('/api/profil'); // Route di profiles.py
+        return apiRequest('/api/profiles'); 
     },
     async update(data) {
-        return apiRequest('/api/profil', { 
+        return apiRequest('/api/profiles', { 
             method: 'PUT', 
             body: JSON.stringify(data) 
         });
-    }
-};
-
-// 6. PUBLIC PROFILE API (KHUSUS INDEX - utama.py)
-// Dipakai di: js/script.js (halaman depan index.html)
-const PublicProfileAPI = {
-    async get() {
-        return apiRequest('/api/main-profile'); // Route di utama.py
-    }
-};
-
-// 7. AUTH & ACCOUNT API
-const AuthAPI = {
-    async login(u, p) { return apiRequest('/api/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) }); },
-    async logout() { return apiRequest('/api/logout', { method: 'POST' }); },
-    async checkAuth() { return apiRequest('/api/auth/check'); }
-};
-
-const AkunAPI = {
+    },
     async changePassword(oldPass, newPass) {
         return apiRequest('/api/profiles/change-password', {
             method: 'POST',
             body: JSON.stringify({ old_password: oldPass, new_password: newPass })
         });
+    }
+};
+
+// 2. UtamaAPI -> Untuk HALAMAN DEPAN (utama.py)
+const UtamaAPI = {
+    async get() {
+        return apiRequest('/api/main-profile'); 
     }
 };

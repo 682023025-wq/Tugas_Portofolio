@@ -54,7 +54,6 @@ def update_profil(current_user):
             values.append(current_user)
             query = f"UPDATE profiles SET {', '.join(updates)} WHERE user_id = %s"
         else:
-            # INSERT (Jika user belum punya profiles sama sekali)
             fields_str = ', '.join([f.split(' = ')[0] for f in updates])
             placeholders = ', '.join(['%s'] * len(updates))
             values.insert(0, current_user) 

@@ -1,24 +1,40 @@
 document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('current-year').textContent = new Date().getFullYear();
 
+    // Load Data Utama
+    await loadPublicData();
+
+    // Handle Form Kontak
+    setupContactForm();
+
+    // Hamburger Menu
+    const hamburger = document.getElementById('hamburger');
+    const navMenu = document.getElementById('navMenu');
+    if(hamburger) {
+        hamburger.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+    }
+});
+
+async function loadPublicData() {
     try {
-        const response = await fetch('/api/utama');
+        // Menggunakan endpoint /api/main-profile
+        const response = await fetch('/api/main-profile');
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
         
         const res = await response.json();
         
-        // Validasi wrapper JSON dari Flask jsonify
         if (!res.success || !res.data) {
-            showError('Format data dari server tidak valid.');
+            showError('Data profil belum tersedia.');
             return;
         }
 
-        // Destructuring sesuai struktur backend profil.py
         const { skills, experiences, projects } = res.data;
-        const profile = res.data; // Data profil ada di level 'data' langsung
+        const profile = res.data;
 
-        if (!profile.nama_lengkap && !profile.nama_panggilan) {
-            showError('Data profil belum diisi oleh admin.');
+        if (!profile.nama_lengkap) {
+            showError('Nama profil kosong.');
             return;
         }
 
@@ -31,9 +47,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
         console.error('Fetch Error:', error);
-        showError('Gagal terhubung ke server portofolio.');
+        showError('Gagal terhubung ke server.');
     }
-});
+}
 
 function showError(msg) {
     const heroContent = document.getElementById('hero-content');
@@ -46,17 +62,15 @@ function renderHero(p) {
     const hero = document.getElementById('hero-content');
     if (!hero) return;
 
-    // PERBAIKAN 3: Fallback aman jika field null/undefined
     hero.innerHTML = `
         <h4>Selamat Datang di Portofolio Saya</h4>
-        <h1>Halo, Saya <span>${escapeHtml(p.nama_lengkap || p.nama_panggilan || 'Admin')}</span></h1>
-        <p>${escapeHtml(p.prodi || '')} - ${escapeHtml(p.universitas || '')}</p>
+        <h1>Halo, Saya <span>${escapeHtml(p.nama_lengkap)}</span></h1>
+        <p>${escapeHtml(p.prodi || 'Mahasiswa')} - ${escapeHtml(p.universitas || 'Universitas')}</p>
         <a href="#projects" class="btn">Lihat Proyek Saya</a>
     `;
 }
 
 function renderAbout(p) {
-    // Foto Profil
     const img = document.getElementById('profile-photo');
     const placeholder = document.getElementById('photo-placeholder');
     
@@ -71,15 +85,14 @@ function renderAbout(p) {
         }
     }
 
-    // Teks About
     const aboutText = document.getElementById('about-text');
     if (aboutText) {
         aboutText.innerHTML = `
             <h3>${escapeHtml(p.nama_lengkap)} - ${escapeHtml(p.prodi)}</h3>
-            <p>Mahasiswa Sistem Informasi di ${escapeHtml(p.universitas)}, Fakultas ${escapeHtml(p.fakultas)}. 
+            <p>Mahasiswa di ${escapeHtml(p.universitas)}, Fakultas ${escapeHtml(p.fakultas)}. 
                Saat ini berada di semester ${escapeHtml(p.semester)}.</p>
             <p>Berdomisili di ${escapeHtml(p.alamat)}. Memiliki ketertarikan besar dalam pengembangan backend, 
-               manajemen database, dan arsitektur aplikasi web yang skalabel.</p>
+               manajemen database, dan arsitektur aplikasi web.</p>
             <a href="#contact" class="btn">Hubungi Saya</a>
         `;
     }
@@ -133,18 +146,23 @@ function renderProjects(projs) {
         return;
     }
 
+    // PERBAIKAN STRUKTUR HTML AGAR COCOK DENGAN CSS OVERLAY
     container.innerHTML = projs.map(p => `
         <div class="project-card">
-            <div class="project-img">
+            <div class="project-img-wrapper">
                 ${p.gambar_url 
-                    ? `<img src="${escapeHtml(p.gambar_url)}" alt="${escapeHtml(p.judul)}" loading="lazy">` 
-                    : '<i class="fas fa-box-open"></i>'}
+                    ? `<img src="${escapeHtml(p.gambar_url)}" alt="${escapeHtml(p.judul)}" class="project-img" loading="lazy">` 
+                    : '<div class="project-img" style="display:flex;align-items:center;justify-content:center;background:#eee;"><i class="fas fa-box-open"></i></div>'}
+                
+                <div class="project-overlay">
+                    <h3 class="project-title-overlay">${escapeHtml(p.judul)}</h3>
+                </div>
             </div>
+            
             <div class="project-info">
-                <h3>${escapeHtml(p.judul)}</h3>
                 <p>${escapeHtml(p.deskripsi?.substring(0, 120))}${p.deskripsi?.length > 120 ? '...' : ''}</p>
                 <div class="project-links">
-                    ${p.link_project ? `<a href="${escapeHtml(p.link_project)}" target="_blank" rel="noopener noreferrer"><i class="fas fa-external-link-alt"></i> Demo</a>` : ''}
+                    ${p.link_project ? `<a href="${escapeHtml(p.link_project)}" target="_blank"><i class="fas fa-external-link-alt"></i> Demo</a>` : ''}
                 </div>
             </div>
         </div>
@@ -158,7 +176,47 @@ function renderContact(p) {
     }
 }
 
-// Fungsi keamanan dasar untuk mencegah XSS saat render innerHTML
+function setupContactForm() {
+    const contactForm = document.getElementById('contactForm');
+    if (!contactForm) return;
+
+    contactForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const btn = document.getElementById('sendBtn');
+        const originalText = btn.textContent;
+        
+        btn.disabled = true;
+        btn.textContent = 'Mengirim...';
+        
+        try {
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: document.getElementById('contactName').value,
+                    email: document.getElementById('contactEmail').value,
+                    message: document.getElementById('contactMessage').value
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                alert('✅ ' + result.message);
+                contactForm.reset();
+            } else {
+                alert('❌ ' + (result.error || 'Gagal mengirim'));
+            }
+        } catch (error) {
+            alert('❌ Terjadi kesalahan jaringan.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    });
+}
+
 function escapeHtml(text) {
     if (text === null || text === undefined) return '';
     const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };

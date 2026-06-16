@@ -5,8 +5,8 @@
 const profileForm = document.getElementById('profileForm');
 const passwordForm = document.getElementById('passwordForm');
 const profilePreview = document.getElementById('profilePreview');
-const imageInput = document.getElementById('fotoInput'); // Pastikan ID ini sesuai di HTML
-let currentFotoUrl = ''; // Menyimpan URL final (bukan base64 lagi)
+const imageInput = document.getElementById('fotoInput'); 
+let currentFotoUrl = ''; 
 
 // 1. Preview Image Function
 function previewImage(input) {
@@ -16,7 +16,7 @@ function previewImage(input) {
   if (!input.files || !input.files[0]) return;
   
   const file = input.files[0];
-  if (file.size > 2 * 1024 * 1024) { // Max 2MB
+  if (file.size > 2 * 1024 * 1024) { 
     alert('Ukuran file terlalu besar! Maksimal 2MB.');
     input.value = ''; 
     return;
@@ -24,7 +24,6 @@ function previewImage(input) {
   
   const reader = new FileReader();
   reader.onload = function(e) {
-    // Tampilkan preview sementara
     if (previewImg) previewImg.src = e.target.result;
     if (previewContainer) previewContainer.style.display = 'block';
   };
@@ -34,7 +33,8 @@ function previewImage(input) {
 // 2. Load Profile Data
 async function loadProfileData() {
   try {
-    const response = await ProfileAPI.get();
+    // ✅ PERBAIKAN: Ganti ProfileAPI menjadi ProfilesAPI
+    const response = await ProfilesAPI.get();
     const profile = response.data;
     
     if (profile && Object.keys(profile).length > 0) {
@@ -58,10 +58,8 @@ async function loadProfileData() {
       setValue('semester', profile.semester);
       setValue('alamat', profile.alamat);
       
-      // Simpan URL foto lama
       currentFotoUrl = profile.foto_url || '';
       
-      // Tampilkan preview foto
       if (currentFotoUrl) {
         const previewContainer = document.getElementById('previewContainer');
         const previewImg = document.getElementById('preview-img');
@@ -113,14 +111,12 @@ if (profileForm) {
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
       
       try {
-        let finalImageUrl = currentFotoUrl; // Default pakai URL lama
+        let finalImageUrl = currentFotoUrl; 
 
-        // STEP A: Jika ada file baru dipilih, upload ke Cloudinary dulu
         if (imageInput && imageInput.files.length > 0) {
             const formData = new FormData();
             formData.append('file', imageInput.files[0]);
             
-            // Panggil endpoint upload backend
             const uploadRes = await fetch('/api/upload/image', {
                 method: 'POST',
                 headers: {
@@ -132,10 +128,9 @@ if (profileForm) {
             if (!uploadRes.ok) throw new Error('Gagal upload gambar');
             
             const uploadData = await uploadRes.json();
-            finalImageUrl = uploadData.url; // Ambil URL dari Cloudinary
+            finalImageUrl = uploadData.url; 
         }
 
-        // STEP B: Siapkan data profil
         const profileData = {
           nama_lengkap: document.getElementById('namaLengkap').value,
           nama_panggilan: document.getElementById('namaPanggilan').value,
@@ -148,14 +143,14 @@ if (profileForm) {
           prodi: document.getElementById('programStudi').value,
           semester: document.getElementById('semester').value,
           alamat: document.getElementById('alamat').value,
-          foto_url: finalImageUrl // Gunakan URL hasil upload
+          foto_url: finalImageUrl 
         };
         
-        // STEP C: Simpan ke Database
-        await ProfileAPI.update(profileData);
+        // ✅ PERBAIKAN: Ganti ProfileAPI.update menjadi ProfilesAPI.update
+        await ProfilesAPI.update(profileData);
         
         alert('Data berhasil disimpan!');
-        loadProfileData(); // Reload data untuk refresh preview
+        loadProfileData(); 
         
       } catch (error) {
         console.error(error);
@@ -177,7 +172,9 @@ if (passwordForm) {
       if (newPass !== confirmPass) return alert('Password tidak cocok!');
       
       try {
-        await AkunAPI.changePassword(document.getElementById('currentPassword').value, newPass);
+        // ✅ PERBAIKAN: Ganti AkunAPI.changePassword menjadi ProfilesAPI.changePassword
+        await ProfilesAPI.changePassword(document.getElementById('currentPassword').value, newPass);
+        
         alert('Password diubah! Silakan login ulang.');
         localStorage.removeItem('authToken');
         window.location.href = 'login.html';
