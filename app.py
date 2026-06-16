@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory,request
 from flask_cors import CORS
 from config import Config
 import os
@@ -13,9 +13,11 @@ from Backend.admin.skills import skills_bp
 from Backend.profil.profil import profil_bp
 
 def create_app():
+    # PERBAIKAN 1: template_folder harus menunjuk ke folder yang berisi .html
+    # static_folder menunjuk ke root aset statis (CSS, JS, Gambar)
     app = Flask(__name__, 
-                static_folder='Frontend',
-                template_folder='Frontend')
+                static_folder='Frontend',      # Root untuk semua aset frontend
+                template_folder='.')           # '.' berarti root project (tempat index.html berada)
     
     # Konfigurasi
     app.config.from_object(Config)
@@ -35,19 +37,23 @@ def create_app():
     # Route untuk serving frontend files
     @app.route('/')
     def index():
-        return send_from_directory('Frontend', 'index.html')
+        # PERBAIKAN 2: Karena index.html ada di root, gunakan app.root_path
+        return send_from_directory(app.root_path, 'index.html')
     
     @app.route('/admin/<path:filename>')
     def admin_pages(filename):
-        return send_from_directory('Frontend/admin', filename)
+        return send_from_directory(os.path.join(app.root_path, 'Frontend', 'admin'), filename)
     
     @app.route('/profil/<path:filename>')
     def profil_pages(filename):
-        return send_from_directory('Frontend/profil', filename)
+        return send_from_directory(os.path.join(app.root_path, 'Frontend', 'profil'), filename)
     
     # Error handlers
     @app.errorhandler(404)
     def not_found(error):
+        # Jika request HTML (bukan API), kembalikan index.html untuk SPA routing
+        if request.accept_mimetypes.best == 'text/html':
+            return send_from_directory(app.root_path, 'index.html')
         return jsonify({'error': 'Route tidak ditemukan'}), 404
     
     @app.errorhandler(500)

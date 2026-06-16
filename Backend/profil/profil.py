@@ -1,35 +1,63 @@
 from flask import Blueprint, request, jsonify
 from model import Database
 from Backend.admin.login import token_required
+from datetime import datetime
 
 profil_bp = Blueprint('profil', __name__)
 
+
 @profil_bp.route('/api/profil', methods=['GET'])
 def get_profil():
-    """Mengambil data profil publik (tanpa auth)"""
+    """Mengambil SEMUA data profil publik (tanpa auth)"""
     try:
         db = Database()
         
-        # Ambil user pertama (atau bisa difilter berdasarkan parameter)
-        query = """
+        # 1. Ambil data profil utama
+        profile_query = """
             SELECT p.*, u.username 
             FROM profiles p 
             JOIN users u ON p.user_id = u.id 
             WHERE u.role = 'admin'
             LIMIT 1
         """
-        result = db.execute_query(query, fetch=True)
+        profile = db.execute_query(profile_query, fetch=True)
         
-        if not result:
+        if not profile:
             return jsonify({'success': True, 'data': None}), 200
+        
+        user_id = profile[0]['user_id']
+        
+        # 2. Ambil data pendukung dalam satu request (lebih efisien)
+        projects_query = """
+            SELECT id, judul, deskripsi, gambar_url, link_project, created_at 
+            FROM projects WHERE user_id = %s ORDER BY created_at DESC
+        """
+        skills_query = """
+            SELECT id, nama_skill, icon_class 
+            FROM skills WHERE user_id = %s
+        """
+        experiences_query = """
+            SELECT id, posisi, perusahaan, durasi, deskripsi, created_at 
+            FROM experiences WHERE user_id = %s ORDER BY created_at DESC
+        """
+        
+        projects = db.execute_query(projects_query, (user_id,), fetch=True) or []
+        skills = db.execute_query(skills_query, (user_id,), fetch=True) or []
+        experiences = db.execute_query(experiences_query, (user_id,), fetch=True) or []
         
         return jsonify({
             'success': True,
-            'data': result[0]
+            'data': {
+                'profile': profile[0],
+                'projects': projects,
+                'skills': skills,
+                'experiences': experiences
+            }
         }), 200
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @profil_bp.route('/api/profil', methods=['PUT'])
 @token_required
@@ -37,43 +65,50 @@ def update_profil(current_user):
     """Update data profil (hanya untuk admin yang login)"""
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body harus JSON'}), 400
         
         db = Database()
         
-        # Field yang boleh diupdate
-        allowed_fields = [
-            'nama_lengkap', 'nama_panggilan', 'tempat_lahir', 
-            'tanggal_lahir', 'email', 'telepon', 'universitas', 
-            'fakultas', 'prodi', 'semester', 'alamat', 'foto_url'
-        ]
+        # Field yang boleh diupdate + validasi tipe
+        allowed_fields = {
+            'nama_lengkap': str, 'nama_panggilan': str, 
+            'tempat_lahir': str, 'tanggal_lahir': str,  # Format YYYY-MM-DD
+            'email': str, 'telepon': str, 'universitas': str, 
+            'fakultas': str, 'prodi': str, 'semester': str, 
+            'alamat': str, 'foto_url': str
+        }
         
         updates = []
         values = []
         
-        for field in allowed_fields:
+        for field, expected_type in allowed_fields.items():
             if field in data:
+                value = data[field]
+                # Validasi tipe sederhana
+                if value is not None and not isinstance(value, expected_type):
+                    return jsonify({'error': f'Tipe data {field} tidak valid'}), 400
                 updates.append(f"{field} = %s")
-                values.append(data[field])
+                values.append(value)
         
         if not updates:
-            return jsonify({'error': 'Tidak ada data yang diupdate'}), 400
+            return jsonify({'error': 'Tidak ada field valid yang diupdate'}), 400
         
-        # Cek apakah profil sudah ada untuk user ini
+        # Cek eksistensi profil
         check_query = "SELECT id FROM profiles WHERE user_id = %s"
         existing = db.execute_query(check_query, (current_user,), fetch=True)
         
         if existing:
-            # Update profil yang sudah ada
             query = f"UPDATE profiles SET {', '.join(updates)} WHERE user_id = %s"
             values.append(current_user)
-            db.execute_query(query, tuple(values))
         else:
-            # Insert profil baru
-            values.append(current_user)
+            # Auto-create jika belum ada (handle mandatory relation)
             fields = ', '.join([f for f in allowed_fields if f in data] + ['user_id'])
-            placeholders = ', '.join(['%s'] * len(values))
+            placeholders = ', '.join(['%s'] * (len(values) + 1))
             query = f"INSERT INTO profiles ({fields}) VALUES ({placeholders})"
-            db.execute_query(query, tuple(values))
+            values.append(current_user)
+        
+        db.execute_query(query, tuple(values))
         
         return jsonify({
             'success': True,
@@ -83,21 +118,30 @@ def update_profil(current_user):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @profil_bp.route('/api/profil', methods=['POST'])
 @token_required
 def create_profil(current_user):
     """Create profil baru"""
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body harus JSON'}), 400
         
         db = Database()
         
-        # Cek apakah profil sudah ada
+        # Wajib cek dulu apakah profil sudah ada (mandatory 1:1)
         check_query = "SELECT id FROM profiles WHERE user_id = %s"
         existing = db.execute_query(check_query, (current_user,), fetch=True)
         
         if existing:
-            return jsonify({'error': 'Profil sudah ada'}), 400
+            return jsonify({'error': 'Profil sudah ada, gunakan PUT untuk update'}), 409
+        
+        # Validasi field wajib
+        required_fields = ['nama_lengkap', 'email']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'Field {field} wajib diisi'}), 400
         
         query = """
             INSERT INTO profiles (
