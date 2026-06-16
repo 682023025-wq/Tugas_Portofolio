@@ -35,7 +35,7 @@ def get_profil():
             FROM skills 
             WHERE user_id = %s
         """
-        skills_result = db.execute_query(skills_query, (user_id,), fetch=True)
+        skills_result = db.execute_query(skills_query, (int(user_id),), fetch=True)
         profile_data['skills'] = [dict(s) for s in skills_result] if skills_result else []
         
         # 3. Ambil experiences
@@ -46,7 +46,7 @@ def get_profil():
             WHERE user_id = %s
             ORDER BY created_at DESC
         """
-        exp_result = db.execute_query(exp_query, (user_id,), fetch=True)
+        exp_result = db.execute_query(exp_query, (int(user_id),), fetch=True)
         profile_data['experiences'] = [dict(e) for e in exp_result] if exp_result else []
         
         # 4. Ambil projects
@@ -57,7 +57,7 @@ def get_profil():
             WHERE user_id = %s
             ORDER BY created_at DESC
         """
-        proj_result = db.execute_query(proj_query, (user_id,), fetch=True)
+        proj_result = db.execute_query(proj_query, (int(user_id),), fetch=True)
         profile_data['projects'] = [dict(p) for p in proj_result] if proj_result else []
         
         # Hapus field user_id dari response jika tidak diperlukan
