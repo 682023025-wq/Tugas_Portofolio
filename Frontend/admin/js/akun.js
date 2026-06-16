@@ -1,5 +1,5 @@
 // =========================================
-// AKUN PAGE LOGIC
+// AKUN PAGE LOGIC - Connected to Backend API
 // =========================================
 
 const profileForm = document.getElementById('profileForm');
@@ -35,38 +35,44 @@ function previewImage(input) {
   }
 }
 
-// Load profile data from localStorage
-function loadProfileData() {
-  const profile = JSON.parse(localStorage.getItem('profile') || '{}');
-  
-  if (Object.keys(profile).length > 0) {
-    // Fill form fields
-    document.getElementById('namaLengkap').value = profile.namaLengkap || '';
-    document.getElementById('namaPanggilan').value = profile.namaPanggilan || '';
-    document.getElementById('tempatLahir').value = profile.tempatLahir || '';
-    document.getElementById('tanggalLahir').value = profile.tanggalLahir || '';
-    document.getElementById('email').value = profile.email || '';
-    document.getElementById('telepon').value = profile.telepon || '';
-    document.getElementById('universitas').value = profile.universitas || '';
-    document.getElementById('fakultas').value = profile.fakultas || '';
-    document.getElementById('programStudi').value = profile.programStudi || '';
-    document.getElementById('semester').value = profile.semester || '';
-    document.getElementById('alamat').value = profile.alamat || '';
+// Load profile data from Backend API
+async function loadProfileData() {
+  try {
+    const response = await ProfileAPI.get();
+    const profile = response.data;
     
-    // Handle foto (could be base64 or URL)
-    if (profile.fotoUrl && profile.fotoUrl.startsWith('data:image')) {
-      currentFotoBase64 = profile.fotoUrl;
-      const previewContainer = document.getElementById('previewContainer');
-      const previewImg = document.getElementById('preview-img');
-      previewImg.src = currentFotoBase64;
-      previewContainer.style.display = 'block';
-    } else if (profile.fotoUrl) {
-      // For backward compatibility with URL
-      currentFotoBase64 = profile.fotoUrl;
+    if (profile && Object.keys(profile).length > 0) {
+      // Fill form fields
+      document.getElementById('namaLengkap').value = profile.nama_lengkap || '';
+      document.getElementById('namaPanggilan').value = profile.nama_panggilan || '';
+      document.getElementById('tempatLahir').value = profile.tempat_lahir || '';
+      document.getElementById('tanggalLahir').value = profile.tanggal_lahir || '';
+      document.getElementById('email').value = profile.email || '';
+      document.getElementById('telepon').value = profile.telepon || '';
+      document.getElementById('universitas').value = profile.universitas || '';
+      document.getElementById('fakultas').value = profile.fakultas || '';
+      document.getElementById('programStudi').value = profile.prodi || '';
+      document.getElementById('semester').value = profile.semester || '';
+      document.getElementById('alamat').value = profile.alamat || '';
+      
+      // Handle foto (could be base64 or URL)
+      if (profile.foto_url && profile.foto_url.startsWith('data:image')) {
+        currentFotoBase64 = profile.foto_url;
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImg = document.getElementById('preview-img');
+        previewImg.src = currentFotoBase64;
+        previewContainer.style.display = 'block';
+      } else if (profile.foto_url) {
+        // For backward compatibility with URL
+        currentFotoBase64 = profile.foto_url;
+      }
+      
+      // Show preview
+      showProfilePreview(profile);
     }
-    
-    // Show preview
-    showProfilePreview(profile);
+  } catch (error) {
+    console.error('Error loading profile:', error);
+    profilePreview.innerHTML = `<p style="color: red;">Gagal memuat data: ${error.message}</p>`;
   }
 }
 
@@ -77,8 +83,8 @@ function showProfilePreview(profile) {
     return;
   }
   
-  const fotoDisplay = profile.fotoUrl 
-    ? `<img src="${profile.fotoUrl}" alt="Foto Profil" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem;" />`
+  const fotoDisplay = profile.foto_url 
+    ? `<img src="${profile.foto_url}" alt="Foto Profil" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem;" />`
     : '<div style="width: 150px; height: 150px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 3rem; color: #94a3b8;"><i class="fas fa-user"></i></div>';
   
   profilePreview.innerHTML = `
@@ -87,15 +93,15 @@ function showProfilePreview(profile) {
     </div>
     <div class="info-item">
       <span class="info-label">Nama Lengkap:</span>
-      <span class="info-value">${profile.namaLengkap || '-'}</span>
+      <span class="info-value">${profile.nama_lengkap || '-'}</span>
     </div>
     <div class="info-item">
       <span class="info-label">Nama Panggilan:</span>
-      <span class="info-value">${profile.namaPanggilan || '-'}</span>
+      <span class="info-value">${profile.nama_panggilan || '-'}</span>
     </div>
     <div class="info-item">
       <span class="info-label">Tempat, Tanggal Lahir:</span>
-      <span class="info-value">${profile.tempatLahir || ''}${profile.tanggalLahir ? ', ' + new Date(profile.tanggalLahir).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}</span>
+      <span class="info-value">${profile.tempat_lahir || ''}${profile.tanggal_lahir ? ', ' + new Date(profile.tanggal_lahir).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}</span>
     </div>
     <div class="info-item">
       <span class="info-label">Email:</span>
@@ -115,7 +121,7 @@ function showProfilePreview(profile) {
     </div>
     <div class="info-item">
       <span class="info-label">Program Studi:</span>
-      <span class="info-value">${profile.programStudi || '-'}</span>
+      <span class="info-value">${profile.prodi || '-'}</span>
     </div>
     <div class="info-item">
       <span class="info-label">Semester:</span>
@@ -129,57 +135,75 @@ function showProfilePreview(profile) {
 }
 
 // Handle profile form submit
-profileForm.addEventListener('submit', function(e) {
+profileForm.addEventListener('submit', async function(e) {
   e.preventDefault();
   
-  const profile = {
-    namaLengkap: document.getElementById('namaLengkap').value,
-    namaPanggilan: document.getElementById('namaPanggilan').value,
-    tempatLahir: document.getElementById('tempatLahir').value,
-    tanggalLahir: document.getElementById('tanggalLahir').value,
-    email: document.getElementById('email').value,
-    telepon: document.getElementById('telepon').value,
-    universitas: document.getElementById('universitas').value,
-    fakultas: document.getElementById('fakultas').value,
-    programStudi: document.getElementById('programStudi').value,
-    semester: document.getElementById('semester').value,
-    alamat: document.getElementById('alamat').value,
-    fotoUrl: currentFotoBase64 // Save base64 image data
-  };
+  const submitBtn = profileForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
   
-  localStorage.setItem('profile', JSON.stringify(profile));
-  showProfilePreview(profile);
-  
-  alert('Data diri berhasil disimpan!');
+  try {
+    const profile = {
+      nama_lengkap: document.getElementById('namaLengkap').value,
+      nama_panggilan: document.getElementById('namaPanggilan').value,
+      tempat_lahir: document.getElementById('tempatLahir').value,
+      tanggal_lahir: document.getElementById('tanggalLahir').value,
+      email: document.getElementById('email').value,
+      telepon: document.getElementById('telepon').value,
+      universitas: document.getElementById('universitas').value,
+      fakultas: document.getElementById('fakultas').value,
+      prodi: document.getElementById('programStudi').value,
+      semester: document.getElementById('semester').value,
+      alamat: document.getElementById('alamat').value,
+      foto_url: currentFotoBase64
+    };
+    
+    await ProfileAPI.update(profile);
+    showProfilePreview(profile);
+    alert('Data diri berhasil disimpan!');
+  } catch (error) {
+    console.error('Error saving profile:', error);
+    alert(`Gagal menyimpan: ${error.message}`);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fas fa-save"></i> Simpan';
+  }
 });
 
 // Handle password change form
-passwordForm.addEventListener('submit', function(e) {
+passwordForm.addEventListener('submit', async function(e) {
   e.preventDefault();
   
   const currentPassword = document.getElementById('currentPassword').value;
   const newPassword = document.getElementById('newPassword').value;
   const confirmPassword = document.getElementById('confirmPassword').value;
   
-  // Get stored password or default
-  const storedPassword = localStorage.getItem('adminPassword') || 'admin123';
+  const submitBtn = passwordForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
   
-  if (currentPassword === storedPassword) {
-    if (newPassword === confirmPassword) {
-      if (newPassword.length >= 6) {
-        localStorage.setItem('adminPassword', newPassword);
-        alert('Password berhasil diubah! Silakan login ulang dengan password baru.');
-        passwordForm.reset();
-        // Redirect to login
-        window.location.href = 'login.html';
-      } else {
-        alert('Password baru minimal 6 karakter!');
-      }
-    } else {
-      alert('Konfirmasi password tidak cocok!');
+  try {
+    if (newPassword !== confirmPassword) {
+      throw new Error('Konfirmasi password tidak cocok!');
     }
-  } else {
-    alert('Password saat ini salah!');
+    
+    if (newPassword.length < 6) {
+      throw new Error('Password baru minimal 6 karakter!');
+    }
+    
+    await AkunAPI.changePassword(currentPassword, newPassword);
+    alert('Password berhasil diubah! Silakan login ulang dengan password baru.');
+    passwordForm.reset();
+    
+    // Clear token and redirect to login
+    localStorage.removeItem('authToken');
+    window.location.href = 'login.html';
+  } catch (error) {
+    console.error('Error changing password:', error);
+    alert(error.message || 'Gagal mengubah password');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fas fa-key"></i> Ubah Password';
   }
 });
 
