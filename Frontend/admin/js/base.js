@@ -2,9 +2,9 @@
 // BASE JS - Shared functionality for admin panel
 // =========================================
 
-// Check if user is logged in (simple session check)
-function checkAuth() {
-  const isLoggedIn = localStorage.getItem('isLoggedIn');
+// Check if user is logged in (using JWT token)
+async function checkAuth() {
+  const token = localStorage.getItem('authToken');
   const currentPage = window.location.pathname;
   
   // Don't redirect on login page
@@ -12,17 +12,36 @@ function checkAuth() {
     return;
   }
   
-  if (!isLoggedIn || isLoggedIn !== 'true') {
+  if (!token) {
     // Redirect to login page
+    window.location.href = 'login.html';
+    return;
+  }
+  
+  // Verify token with backend
+  try {
+    const response = await AuthAPI.checkAuth();
+    if (!response.authenticated) {
+      localStorage.removeItem('authToken');
+      window.location.href = 'login.html';
+    }
+  } catch (error) {
+    localStorage.removeItem('authToken');
     window.location.href = 'login.html';
   }
 }
 
 // Logout function
-function logout() {
-  localStorage.removeItem('isLoggedIn');
-  localStorage.removeItem('currentUser');
-  window.location.href = 'login.html';
+async function logout() {
+  try {
+    await AuthAPI.logout();
+  } catch (error) {
+    console.error('Logout error:', error);
+  } finally {
+    // Clear local storage regardless of API result
+    localStorage.removeItem('authToken');
+    window.location.href = 'login.html';
+  }
 }
 
 // Initialize default data from index.html if not exists

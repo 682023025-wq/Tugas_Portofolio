@@ -25,29 +25,44 @@ if (togglePasswordBtn && passwordInput) {
     });
 }
 
-// 2. Simulasi Proses Login
+// 2. Proses Login dengan API Backend
 if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', async function(e) {
         e.preventDefault(); 
         
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         const errorMsg = document.getElementById('errorMessage');
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
 
-        if (username === 'admin' && password === 'admin123') {
-            // Simpan sesi login ke localStorage
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('username', username);
+        // Disable button during request
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+        }
+
+        try {
+            // Call backend API
+            const response = await AuthAPI.login(username, password);
+            
+            // Save token to localStorage
+            setAuthToken(response.token);
             
             alert('Login berhasil! Mengalihkan ke dashboard...');
             window.location.href = 'dashboard.html';
-        } else {
-            errorMsg.textContent = 'Username atau password salah. Silakan coba lagi.';
+        } catch (error) {
+            errorMsg.textContent = error.message || 'Username atau password salah. Silakan coba lagi.';
             errorMsg.style.display = 'block';
             
             setTimeout(() => {
                 errorMsg.style.display = 'none';
             }, 3000);
+        } finally {
+            // Re-enable button
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+            }
         }
     });
 }
