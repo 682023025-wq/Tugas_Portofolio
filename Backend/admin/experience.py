@@ -2,14 +2,17 @@ from flask import Blueprint, request, jsonify
 from model import Database
 from Backend.admin.login import token_required
 
+# Inisialisasi Blueprint
 experience_bp = Blueprint('experience', __name__)
 
-@experience_bp.route('/api/experiences', methods=['GET'])
+# ✅ PERBAIKAN: Hapus '/api' di depan route
+@experience_bp.route('/experiences', methods=['GET'])
 def get_experiences():
     """Mengambil semua experiences (publik)"""
     try:
         db = Database()
         
+        # Ambil data experience milik admin saja untuk ditampilkan publik
         query = """
             SELECT e.*, u.username 
             FROM experiences e 
@@ -27,7 +30,7 @@ def get_experiences():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@experience_bp.route('/api/experiences/<int:id>', methods=['GET'])
+@experience_bp.route('/experiences/<int:id>', methods=['GET'])
 def get_experience_by_id(id):
     """Mengambil satu experience berdasarkan ID"""
     try:
@@ -47,10 +50,10 @@ def get_experience_by_id(id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@experience_bp.route('/api/experiences', methods=['POST'])
+@experience_bp.route('/experiences', methods=['POST'])
 @token_required
 def create_experience(current_user):
-    """Create experience baru"""
+    """Create experience baru (Admin Only)"""
     try:
         data = request.get_json()
         
@@ -84,16 +87,16 @@ def create_experience(current_user):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@experience_bp.route('/api/experiences/<int:id>', methods=['PUT'])
+@experience_bp.route('/experiences/<int:id>', methods=['PUT'])
 @token_required
 def update_experience(current_user, id):
-    """Update experience"""
+    """Update experience (Admin Only)"""
     try:
         data = request.get_json()
         
         db = Database()
         
-        # Cek apakah experience milik user ini
+        # Keamanan: Pastikan user hanya bisa edit miliknya sendiri
         check_query = "SELECT id FROM experiences WHERE id = %s AND user_id = %s"
         existing = db.execute_query(check_query, (id, current_user), fetch=True)
         
@@ -124,14 +127,14 @@ def update_experience(current_user, id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@experience_bp.route('/api/experiences/<int:id>', methods=['DELETE'])
+@experience_bp.route('/experiences/<int:id>', methods=['DELETE'])
 @token_required
 def delete_experience(current_user, id):
-    """Delete experience"""
+    """Delete experience (Admin Only)"""
     try:
         db = Database()
         
-        # Cek apakah experience milik user ini
+        # Keamanan: Pastikan user hanya bisa hapus miliknya sendiri
         check_query = "SELECT id FROM experiences WHERE id = %s AND user_id = %s"
         existing = db.execute_query(check_query, (id, current_user), fetch=True)
         

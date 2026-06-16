@@ -4,12 +4,13 @@ from Backend.admin.login import token_required
 
 projects_bp = Blueprint('projects', __name__)
 
-@projects_bp.route('/api/projects', methods=['GET'])
+@projects_bp.route('/projects', methods=['GET'])
 def get_projects():
     """Mengambil semua projects (publik)"""
     try:
         db = Database()
         
+        # Sesuai DB: Ambil judul, deskripsi, gambar_url, link_project
         query = """
             SELECT p.*, u.username 
             FROM projects p 
@@ -27,12 +28,11 @@ def get_projects():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@projects_bp.route('/api/projects/<int:id>', methods=['GET'])
+@projects_bp.route('/projects/<int:id>', methods=['GET'])
 def get_project_by_id(id):
     """Mengambil satu project berdasarkan ID"""
     try:
         db = Database()
-        
         query = "SELECT * FROM projects WHERE id = %s"
         result = db.execute_query(query, (id,), fetch=True)
         
@@ -47,7 +47,7 @@ def get_project_by_id(id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@projects_bp.route('/api/projects', methods=['POST'])
+@projects_bp.route('/projects', methods=['POST'])
 @token_required
 def create_project(current_user):
     """Create project baru"""
@@ -61,6 +61,7 @@ def create_project(current_user):
         
         db = Database()
         
+        # Sesuai DB: user_id, judul, deskripsi, gambar_url, link_project
         query = """
             INSERT INTO projects (user_id, judul, deskripsi, gambar_url, link_project)
             VALUES (%s, %s, %s, %s, %s)
@@ -69,8 +70,8 @@ def create_project(current_user):
             current_user,
             data.get('judul'),
             data.get('deskripsi'),
-            data.get('gambar_url'),
-            data.get('link_project')
+            data.get('gambar_url'), # Bisa kosong/null
+            data.get('link_project') # Bisa kosong/null
         )
         
         new_id = db.execute_query(query, values)
@@ -84,22 +85,21 @@ def create_project(current_user):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@projects_bp.route('/api/projects/<int:id>', methods=['PUT'])
+@projects_bp.route('/projects/<int:id>', methods=['PUT'])
 @token_required
 def update_project(current_user, id):
     """Update project"""
     try:
         data = request.get_json()
-        
         db = Database()
         
-        # Cek apakah project milik user ini
         check_query = "SELECT id FROM projects WHERE id = %s AND user_id = %s"
         existing = db.execute_query(check_query, (id, current_user), fetch=True)
         
         if not existing:
             return jsonify({'error': 'Project tidak ditemukan atau bukan milik Anda'}), 404
         
+        # Allowed fields sesuai kolom DB
         allowed_fields = ['judul', 'deskripsi', 'gambar_url', 'link_project']
         updates = []
         values = []
@@ -124,14 +124,12 @@ def update_project(current_user, id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@projects_bp.route('/api/projects/<int:id>', methods=['DELETE'])
+@projects_bp.route('/projects/<int:id>', methods=['DELETE'])
 @token_required
 def delete_project(current_user, id):
     """Delete project"""
     try:
         db = Database()
-        
-        # Cek apakah project milik user ini
         check_query = "SELECT id FROM projects WHERE id = %s AND user_id = %s"
         existing = db.execute_query(check_query, (id, current_user), fetch=True)
         

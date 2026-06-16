@@ -1,5 +1,6 @@
 // =========================================
-// EXPERIENCE PAGE LOGIC - CRUD Operations with Backend API
+// EXPERIENCE PAGE LOGIC - CRUD Operations
+// NOTE: Menggunakan ExperienceAPI dari api.js
 // =========================================
 
 const experienceForm = document.getElementById('experienceForm');
@@ -12,6 +13,7 @@ let editingId = null;
 // Load experience data from Backend API
 async function loadExperience() {
   try {
+    // ✅ Menggunakan ExperienceAPI yang sudah didefinisikan di api.js
     const response = await ExperienceAPI.getAll();
     const experience = response.data || [];
     
@@ -24,12 +26,12 @@ async function loadExperience() {
       <div class="data-card" data-id="${exp.id}">
         <div class="data-card-header">
           <div>
-            <h4>${exp.posisi}</h4>
-            <p>${exp.perusahaan} | ${exp.durasi}</p>
+            <h4>${escapeHtml(exp.posisi)}</h4>
+            <p>${escapeHtml(exp.perusahaan)} | ${escapeHtml(exp.durasi)}</p>
           </div>
         </div>
         <div class="data-card-body">
-          ${exp.deskripsi}
+          ${escapeHtml(exp.deskripsi)}
         </div>
         <div class="data-card-actions">
           <button class="btn btn-sm btn-edit" onclick="editExperience(${exp.id})">
@@ -48,46 +50,50 @@ async function loadExperience() {
 }
 
 // Save experience (add or update)
-experienceForm.addEventListener('submit', async function(e) {
-  e.preventDefault();
-  
-  const period = document.getElementById('expPeriod').value;
-  const title = document.getElementById('expTitle').value;
-  const company = document.getElementById('expCompany').value;
-  const description = document.getElementById('expDescription').value;
-  
-  const submitBtn = document.getElementById('saveBtn');
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-  
-  try {
-    const data = {
-      posisi: title,
-      perusahaan: company,
-      durasi: period,
-      deskripsi: description
-    };
-    
-    if (isEditing && editingId) {
-      // Update existing
-      await ExperienceAPI.update(editingId, data);
-      alert('Pengalaman berhasil diperbarui!');
-    } else {
-      // Add new
-      await ExperienceAPI.create(data);
-      alert('Pengalaman berhasil ditambahkan!');
-    }
-    
-    resetForm();
-    loadExperience();
-  } catch (error) {
-    console.error('Error saving experience:', error);
-    alert(`Gagal menyimpan: ${error.message}`);
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = '<i class="fas fa-save"></i> Simpan';
-  }
-});
+if (experienceForm) {
+    experienceForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const period = document.getElementById('expPeriod').value;
+      const title = document.getElementById('expTitle').value;
+      const company = document.getElementById('expCompany').value;
+      const description = document.getElementById('expDescription').value;
+      
+      const submitBtn = document.getElementById('saveBtn');
+      const originalBtnText = submitBtn.innerHTML;
+      
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+      
+      try {
+        const data = {
+          posisi: title,
+          perusahaan: company,
+          durasi: period,
+          deskripsi: description
+        };
+        
+        if (isEditing && editingId) {
+          // Update existing
+          await ExperienceAPI.update(editingId, data);
+          alert('Pengalaman berhasil diperbarui!');
+        } else {
+          // Add new
+          await ExperienceAPI.create(data);
+          alert('Pengalaman berhasil ditambahkan!');
+        }
+        
+        resetForm();
+        loadExperience();
+      } catch (error) {
+        console.error('Error saving experience:', error);
+        alert(`Gagal menyimpan: ${error.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      }
+    });
+}
 
 // Edit experience
 window.editExperience = async function(id) {
@@ -104,7 +110,7 @@ window.editExperience = async function(id) {
     isEditing = true;
     editingId = id;
     document.getElementById('saveBtn').innerHTML = '<i class="fas fa-sync"></i> Update';
-    cancelBtn.style.display = 'inline-flex';
+    if (cancelBtn) cancelBtn.style.display = 'inline-flex';
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (error) {
@@ -128,15 +134,29 @@ window.deleteExperience = async function(id) {
 };
 
 // Cancel edit
-cancelBtn.addEventListener('click', resetForm);
+if (cancelBtn) {
+    cancelBtn.addEventListener('click', resetForm);
+}
 
 function resetForm() {
-  experienceForm.reset();
-  document.getElementById('expId').value = '';
+  if (experienceForm) experienceForm.reset();
+  const idField = document.getElementById('expId');
+  if (idField) idField.value = '';
+  
   isEditing = false;
   editingId = null;
-  document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Simpan';
-  cancelBtn.style.display = 'none';
+  
+  const saveBtn = document.getElementById('saveBtn');
+  if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save"></i> Simpan';
+  
+  if (cancelBtn) cancelBtn.style.display = 'none';
+}
+
+// Helper keamanan XSS (Pastikan ini ada jika belum ada di base.js)
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
 // Initialize on page load

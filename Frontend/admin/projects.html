@@ -1,15 +1,10 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Projects - Admin Portofolio</title>
-    <!-- Font Awesome untuk ikon -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/projects.css" />
   </head>
@@ -36,7 +31,7 @@
       <header class="top-bar">
         <h1>Kelola Proyek</h1>
         <div class="user-info">
-          <span>Halo, Admin</span>
+          <span id="admin-name">Halo, Admin</span>
         </div>
       </header>
 
@@ -45,24 +40,42 @@
           <h3>Tambah / Edit Proyek</h3>
           <form id="projectForm" class="data-form">
             <input type="hidden" id="projId" />
+
             <div class="form-row">
               <div class="form-group full-width">
                 <label for="projTitle">Judul Proyek</label>
                 <input type="text" id="projTitle" placeholder="Contoh: Sistem Manajemen Inventaris" required />
               </div>
             </div>
+
             <div class="form-row">
               <div class="form-group full-width">
                 <label for="projDescription">Deskripsi</label>
-                <textarea id="projDescription" rows="4" placeholder="Deskripsikan proyek Anda..." required></textarea>
+                <textarea id="projDescription" rows="4" placeholder="Deskripsikan teknologi dan fitur utama..." required></textarea>
               </div>
             </div>
+
+            <!-- Input Upload Gambar Cloudinary -->
             <div class="form-row">
               <div class="form-group full-width">
-                <label for="projTags">Tags (pisahkan dengan koma)</label>
-                <input type="text" id="projTags" placeholder="Contoh: Python, Flask, SQLite" required />
+                <label for="projImageFile">Upload Thumbnail Project</label>
+                <input type="file" id="projImageFile" accept="image/*" />
+                <small style="color: var(--text-gray)">Format: JPG, PNG. Maksimal 2MB.</small>
+                
+                <!-- Area Preview Gambar -->
+                <div id="previewContainer" style="margin-top: 10px; display: none;">
+                  <img id="imagePreview" src="" alt="Preview" style="max-width: 200px; border-radius: 8px; border: 1px solid var(--border);" />
+                </div>
               </div>
             </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="projLink">Link Project (GitHub/Web)</label>
+                <input type="url" id="projLink" placeholder="https://github.com/username/repo" />
+              </div>
+            </div>
+
             <div class="form-actions">
               <button type="submit" class="btn btn-primary" id="saveBtn">
                 <i class="fas fa-save"></i> Simpan

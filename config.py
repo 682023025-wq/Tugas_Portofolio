@@ -11,7 +11,6 @@ class Config:
     DB_PASSWORD = os.getenv('DB_PASSWORD', 'dEmrDAa5kTRC420d')
     DB_NAME = os.getenv('DB_NAME', 'Portofolio')
     
-    # MySQL Connection String for mysql.connector
     MYSQL_CONFIG = {
         'host': DB_HOST,
         'port': DB_PORT,
@@ -25,8 +24,11 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'your-secret-key-change-in-production')
     DEBUG = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
     
-    # Cloudinary Configuration
-    CLOUDINARY_URL = os.getenv('CLOUDINARY_URL', 'cloudinary://884765233771594:qOYvn2w1TsW_ipwEzhgqB8RRTKE@daknwopl3')
+    # Cloudinary Configuration (Dipecah agar lebih clean)
+    # Jika CLOUDINARY_URL ada, kita bisa parse, tapi manual lebih aman untuk typing
+    CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME', 'daknwopl3')
+    CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY', '884765233771594')
+    CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET', 'qOYvn2w1TsW_ipwEzhgqB8RRTKE')
     
-    # Resend API Configuration (untuk email)
+    # Resend API Configuration
     RESEND_API_KEY = os.getenv('RESEND_API_KEY', 're_Sk1G87rv_783KGz9c5QAaifSaZ3oxZdKs')

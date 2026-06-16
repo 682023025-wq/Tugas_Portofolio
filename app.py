@@ -11,6 +11,8 @@ from Backend.admin.experience import experience_bp
 from Backend.admin.projects import projects_bp
 from Backend.admin.skills import skills_bp
 from Backend.profil.profil import profil_bp
+from Backend.admin.upload import upload_bp
+
 
 def create_app():
     # PERBAIKAN 1: template_folder harus menunjuk ke folder yang berisi .html
@@ -33,6 +35,7 @@ def create_app():
     app.register_blueprint(projects_bp, url_prefix='/api')
     app.register_blueprint(skills_bp, url_prefix='/api')
     app.register_blueprint(profil_bp, url_prefix='/api')
+    app.register_blueprint(upload_bp, url_prefix='/api')
     
     # Route untuk serving frontend files
     @app.route('/')
