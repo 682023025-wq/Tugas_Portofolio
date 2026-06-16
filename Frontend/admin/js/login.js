@@ -1,32 +1,7 @@
 // ==========================================
 // LOGIKA KHUSUS HALAMAN LOGIN
+// (Menggunakan AuthAPI & setAuthToken dari api.js)
 // ==========================================
-
-const API_BASE = '/api'; // Sesuaikan dengan url_prefix di app.py
-
-// Helper: Simpan token ke localStorage/sessionStorage
-function setAuthToken(token) {
-    sessionStorage.setItem('auth_token', token); // Gunakan sessionStorage untuk keamanan lebih baik
-}
-
-// Helper: AuthAPI wrapper (jika belum ada, buat ini)
-const AuthAPI = {
-    async login(username, password) {
-        const response = await fetch(`${API_BASE}/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-            credentials: 'include' // Penting jika pakai cookie-based auth
-        });
-        
-        if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.error || 'Login gagal');
-        }
-        
-        return await response.json();
-    }
-};
 
 // 1. Fitur Lihat/Sembunyikan Password
 const togglePasswordBtn = document.getElementById('togglePassword');
@@ -73,27 +48,25 @@ if (loginForm) {
         }
 
         try {
+            // Menggunakan AuthAPI yang sudah didefinisikan di api.js
             const response = await AuthAPI.login(username, password);
             
             // Simpan token DAN role (penting untuk redirect)
             setAuthToken(response.token);
-            if (response.role) {
-                sessionStorage.setItem('user_role', response.role);
+            if (response.user?.role) {
+                sessionStorage.setItem('user_role', response.user.role);
             }
             
-            // Redirect berdasarkan role (opsional)
-            const redirectUrl = response.role === 'admin' 
-                ? 'dashboard.html' 
-                : '../index.html';
-                
-            window.location.href = redirectUrl;
+            // Redirect ke dashboard admin
+            window.location.href = 'dashboard.html';
             
         } catch (error) {
             showError(errorMsg, error.message || 'Username atau password salah.');
         } finally {
+            // Re-enable button
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                submitBtn.innerHTML = 'Masuk';
             }
         }
     });

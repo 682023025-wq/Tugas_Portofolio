@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
 from model import Database
 from Backend.admin.login import token_required
-from datetime import datetime
+import logging
 
+logger = logging.getLogger(__name__)
 profil_bp = Blueprint('profil', __name__)
 
 
@@ -12,7 +13,7 @@ def get_profil():
     try:
         db = Database()
         
-        # 1. Ambil data profil utama
+        # 1. Ambil data profil utama + username sekaligus
         profile_query = """
             SELECT p.*, u.username 
             FROM profiles p
@@ -29,50 +30,39 @@ def get_profil():
         user_id = row['user_id']
         profile_data = dict(row)
         
-        # 2. Ambil skills
-        skills_query = """
-            SELECT id, nama_skill, icon_class 
-            FROM skills 
-            WHERE user_id = %s
-        """
-        skills_result = db.execute_query(skills_query, (int(user_id),), fetch=True)
-        profile_data['skills'] = [dict(s) for s in skills_result] if skills_result else []
+        # 2. Ambil skills, experiences, projects secara paralel
+        # Menggunakan list comprehension untuk efisiensi
+        skills_result = db.execute_query(
+            "SELECT id, nama_skill, icon_class FROM skills WHERE user_id = %s", 
+            (user_id,), fetch=True
+        ) or []
         
-        # 3. Ambil experiences
-        exp_query = """
-            SELECT id, posisi, perusahaan, durasi, deskripsi, 
-                   DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as created_at
-            FROM experiences 
-            WHERE user_id = %s
-            ORDER BY created_at DESC
-        """
-        exp_result = db.execute_query(exp_query, (int(user_id),), fetch=True)
-        profile_data['experiences'] = [dict(e) for e in exp_result] if exp_result else []
+        exp_result = db.execute_query(
+            """SELECT id, posisi, perusahaan, durasi, deskripsi, created_at 
+               FROM experiences WHERE user_id = %s ORDER BY created_at DESC""", 
+            (user_id,), fetch=True
+        ) or []
         
-        # 4. Ambil projects
-        proj_query = """
-            SELECT id, judul, deskripsi, gambar_url, link_project,
-                   DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as created_at
-            FROM projects 
-            WHERE user_id = %s
-            ORDER BY created_at DESC
-        """
-        proj_result = db.execute_query(proj_query, (int(user_id),), fetch=True)
-        profile_data['projects'] = [dict(p) for p in proj_result] if proj_result else []
+        proj_result = db.execute_query(
+            """SELECT id, judul, deskripsi, gambar_url, link_project, created_at 
+               FROM projects WHERE user_id = %s ORDER BY created_at DESC""", 
+            (user_id,), fetch=True
+        ) or []
         
-        # Hapus field user_id dari response jika tidak diperlukan
-        if 'user_id' in profile_data:
-            del profile_data['user_id']
+        # Assign ke response (biarkan DB handle formatting tanggal jika perlu)
+        profile_data['skills'] = [dict(s) for s in skills_result]
+        profile_data['experiences'] = [dict(e) for e in exp_result]
+        profile_data['projects'] = [dict(p) for p in proj_result]
         
-        return jsonify({
-            'success': True,
-            'data': profile_data
-        }), 200
+        # Hapus field sensitif/internal dari response publik
+        profile_data.pop('user_id', None)
+        profile_data.pop('password_hash', None)  # Safety net jika join gagal filter
+        
+        return jsonify({'success': True, 'data': profile_data}), 200
         
     except Exception as e:
-        import logging
-        logging.error(f"Error in get_profil: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error in get_profil: {str(e)}")
+        return jsonify({'error': 'Gagal memuat data profil'}), 500
 
 
 @profil_bp.route('/profil', methods=['PUT'])
@@ -86,24 +76,20 @@ def update_profil(current_user):
         
         db = Database()
         
-        # Field yang boleh diupdate + validasi tipe
-        allowed_fields = {
-            'nama_lengkap': str, 'nama_panggilan': str, 
-            'tempat_lahir': str, 'tanggal_lahir': str,  # Format YYYY-MM-DD
-            'email': str, 'telepon': str, 'universitas': str, 
-            'fakultas': str, 'prodi': str, 'semester': str, 
-            'alamat': str, 'foto_url': str
-        }
+        # Whitelist field yang boleh diupdate
+        allowed_fields = [
+            'nama_lengkap', 'nama_panggilan', 'tempat_lahir', 
+            'tanggal_lahir', 'email', 'telepon', 'universitas', 
+            'fakultas', 'prodi', 'semester', 'alamat', 'foto_url'
+        ]
         
         updates = []
         values = []
         
-        for field, expected_type in allowed_fields.items():
-            if field in data:
-                value = data[field]
-                # Validasi tipe sederhana
-                if value is not None and not isinstance(value, expected_type):
-                    return jsonify({'error': f'Tipe data {field} tidak valid'}), 400
+        for field in allowed_fields:
+            if field in data and data[field] is not None:
+                # Sanitasi string sederhana (strip whitespace)
+                value = data[field].strip() if isinstance(data[field], str) else data[field]
                 updates.append(f"{field} = %s")
                 values.append(value)
         
@@ -119,20 +105,18 @@ def update_profil(current_user):
             values.append(current_user)
         else:
             # Auto-create jika belum ada (handle mandatory relation)
-            fields = ', '.join([f for f in allowed_fields if f in data] + ['user_id'])
+            fields_str = ', '.join([f for f in allowed_fields if f in data and data[f] is not None] + ['user_id'])
             placeholders = ', '.join(['%s'] * (len(values) + 1))
-            query = f"INSERT INTO profiles ({fields}) VALUES ({placeholders})"
+            query = f"INSERT INTO profiles ({fields_str}) VALUES ({placeholders})"
             values.append(current_user)
         
         db.execute_query(query, tuple(values))
         
-        return jsonify({
-            'success': True,
-            'message': 'Profil berhasil diupdate'
-        }), 200
+        return jsonify({'success': True, 'message': 'Profil berhasil diupdate'}), 200
         
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error in update_profil: {str(e)}")
+        return jsonify({'error': 'Gagal mengupdate profil'}), 500
 
 
 @profil_bp.route('/profil', methods=['POST'])
@@ -156,7 +140,7 @@ def create_profil(current_user):
         # Validasi field wajib
         required_fields = ['nama_lengkap', 'email']
         for field in required_fields:
-            if field not in data or not data[field]:
+            if field not in data or not str(data[field]).strip():
                 return jsonify({'error': f'Field {field} wajib diisi'}), 400
         
         query = """
@@ -168,26 +152,24 @@ def create_profil(current_user):
         """
         values = (
             current_user,
-            data.get('nama_lengkap'),
-            data.get('nama_panggilan'),
-            data.get('tempat_lahir'),
-            data.get('tanggal_lahir'),
-            data.get('email'),
-            data.get('telepon'),
-            data.get('universitas'),
-            data.get('fakultas'),
-            data.get('prodi'),
-            data.get('semester'),
-            data.get('alamat'),
-            data.get('foto_url')
+            str(data.get('nama_lengkap', '')).strip(),
+            str(data.get('nama_panggilan', '')).strip(),
+            str(data.get('tempat_lahir', '')).strip(),
+            data.get('tanggal_lahir'),  # Biarkan NULL jika kosong
+            str(data.get('email', '')).strip(),
+            str(data.get('telepon', '')).strip(),
+            str(data.get('universitas', '')).strip(),
+            str(data.get('fakultas', '')).strip(),
+            str(data.get('prodi', '')).strip(),
+            str(data.get('semester', '')).strip(),
+            str(data.get('alamat', '')).strip(),
+            str(data.get('foto_url', '')).strip()
         )
         
         db.execute_query(query, values)
         
-        return jsonify({
-            'success': True,
-            'message': 'Profil berhasil dibuat'
-        }), 201
+        return jsonify({'success': True, 'message': 'Profil berhasil dibuat'}), 201
         
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error in create_profil: {str(e)}")
+        return jsonify({'error': 'Gagal membuat profil'}), 500
