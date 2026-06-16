@@ -6,7 +6,7 @@ from datetime import datetime
 profil_bp = Blueprint('profil', __name__)
 
 
-@profil_bp.route('/api/profil', methods=['GET'])
+@profil_bp.route('/profil', methods=['GET'])
 def get_profil():
     """Mengambil SEMUA data profil publik (tanpa auth)"""
     try:
@@ -59,7 +59,7 @@ def get_profil():
         return jsonify({'error': str(e)}), 500
 
 
-@profil_bp.route('/api/profil', methods=['PUT'])
+@profil_bp.route('/profil', methods=['PUT'])
 @token_required
 def update_profil(current_user):
     """Update data profil (hanya untuk admin yang login)"""
@@ -119,7 +119,7 @@ def update_profil(current_user):
         return jsonify({'error': str(e)}), 500
 
 
-@profil_bp.route('/api/profil', methods=['POST'])
+@profil_bp.route('/profil', methods=['POST'])
 @token_required
 def create_profil(current_user):
     """Create profil baru"""
