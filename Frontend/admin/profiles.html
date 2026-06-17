@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Akun - Admin Portofolio</title>
+    <title>profiles - Admin Portofolio</title>
     <!-- Font Awesome untuk ikon -->
     <link
       rel="stylesheet"
@@ -11,10 +11,10 @@
     />
     <!-- CSS -->
     <link rel="stylesheet" href="css/base.css" />
-    <link rel="stylesheet" href="css/akun.css" />
+    <link rel="stylesheet" href="css/profiles.css" />
   </head>
   <body>
-    <!-- Sidebar -->
+    <!-- Sidebar -->    
     <aside class="sidebar">
       <div class="sidebar-header">
         <h2>Admin Panel</h2>
@@ -25,7 +25,7 @@
           <li><a href="experience.html"><i class="fas fa-briefcase"></i> Experience</a></li>
           <li><a href="projects.html"><i class="fas fa-folder"></i> Projects</a></li>
           <li><a href="skills.html"><i class="fas fa-star"></i> Skills</a></li>
-          <li><a href="akun.html" class="active"><i class="fas fa-user"></i> Akun</a></li>
+          <li><a href="profiles.html" class="active"><i class="fas fa-user"></i> profiles</a></li>
           <li><a href="../../index.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
       </nav>
@@ -34,7 +34,7 @@
     <!-- Main Content -->
     <main class="main-content">
       <header class="top-bar">
-        <h1>Kelola Akun</h1>
+        <h1>Kelola profiles</h1>
         <div class="user-info">
           <span>Halo, Admin</span>
         </div>
@@ -109,8 +109,12 @@
             
             <div class="form-row">
               <div class="form-group full-width">
-                <label for="fotoUrl">URL Foto Profil</label>
-                <input type="url" id="fotoUrl" placeholder="https://example.com/foto.jpg" />
+                <label for="foto">Foto Profil</label>
+                  <input type="file" id="fotoInput" name="foto" accept="image/*" onchange="previewImage(this)" />                <div class="image-preview-container" id="previewContainer" style="margin-top: 10px; display: none;">
+                  <p style="font-size: 0.9em; color: #666;">Preview:</p>
+                  <img id="preview-img" src="" alt="Preview Foto" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #ddd; object-fit: cover;" />
+                </div>
+                <small style="color: #666; display: block; margin-top: 5px;">Format: JPG, PNG. Maksimal ukuran disarankan &lt; 500KB agar penyimpanan lokal tidak penuh.</small>
               </div>
             </div>
             
@@ -160,7 +164,8 @@
       </div>
     </main>
 
+    <script src="js/api.js"></script>
     <script src="js/base.js"></script>
-    <script src="js/akun.js"></script>
+    <script src="js/profiles.js"></script>
   </body>
 </html>

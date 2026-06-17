@@ -1,140 +1,157 @@
-// =========================================
-// DASHBOARD LOGIC - Load data from localStorage
-// =========================================
+// ==========================================
+// DASHBOARD LOGIC - Load data from Backend API
+// ==========================================
 
-// Data default dari index.html (akan disimpan ke localStorage jika belum ada)
-const defaultExperience = [
-  {
-    id: 1,
-    period: "2024 - Sekarang",
-    title: "Backend Developer (Freelance)",
-    company: "Mandiri",
-    description: "Membangun aplikasi web sederhana untuk klien menggunakan Python Flask dan SQLite. Bertanggung jawab atas desain database, REST API, dan integrasi frontend."
-  },
-  {
-    id: 2,
-    period: "2023 - 2024",
-    title: "Anggota Divisi IT",
-    company: "Himpunan Mahasiswa Informatika",
-    description: "Mengelola website organisasi, membuat sistem pendaftaran event online, serta mendokumentasikan kegiatan teknis untuk anggota baru."
-  },
-  {
-    id: 3,
-    period: "2022 - Sekarang",
-    title: "Mahasiswa Teknik Informatika",
-    company: "Universitas [Nama Kampus]",
-    description: "Mempelajari dasar-dasar ilmu komputer, algoritma, struktur data, basis data, dan rekayasa perangkat lunak. Aktif dalam berbagai proyek akademik berbasis web."
-  },
-  {
-    id: 4,
-    period: "2023",
-    title: "Peserta Bootcamp Backend Development",
-    company: "Platform Online (Dicoding/Alta/dll)",
-    description: "Menyelesaikan kelas intensif tentang pengembangan backend dengan Python, termasuk pembuatan REST API, autentikasi JWT, dan deployment aplikasi."
-  }
-];
+(function() {
+    'use strict';
 
-const defaultProjects = [
-  {
-    id: 1,
-    title: "Sistem Manajemen Inventaris",
-    description: "Aplikasi web untuk melacak stok barang masuk dan keluar dengan laporan bulanan otomatis.",
-    tags: ["Python", "Flask", "SQLite"]
-  },
-  {
-    id: 2,
-    title: "REST API Mobile App",
-    description: "Backend service yang menyediakan endpoint untuk autentikasi pengguna dan manajemen data profil.",
-    tags: ["Flask-RESTful", "JWT", "PostgreSQL"]
-  },
-  {
-    id: 3,
-    title: "Web Scraper Data Harga",
-    description: "Script otomatis untuk mengambil data harga produk dari berbagai marketplace dan menyimpannya ke database.",
-    tags: ["Python", "BeautifulSoup", "Pandas"]
-  }
-];
-
-const defaultSkills = [
-  { id: 1, name: "Python", icon: "fab fa-python" },
-  { id: 2, name: "SQL & Database", icon: "fas fa-database" },
-  { id: 3, name: "Flask / Backend", icon: "fas fa-server" },
-  { id: 4, name: "HTML & CSS", icon: "fab fa-html5" },
-  { id: 5, name: "JavaScript", icon: "fab fa-js" },
-  { id: 6, name: "Git & GitHub", icon: "fab fa-git-alt" }
-];
-
-// Initialize data in localStorage if not exists
-function initializeData() {
-  if (!localStorage.getItem('experience')) {
-    localStorage.setItem('experience', JSON.stringify(defaultExperience));
-  }
-  if (!localStorage.getItem('projects')) {
-    localStorage.setItem('projects', JSON.stringify(defaultProjects));
-  }
-  if (!localStorage.getItem('skills')) {
-    localStorage.setItem('skills', JSON.stringify(defaultSkills));
-  }
-}
-
-// Load and display dashboard data
-function loadDashboardData() {
-  const experience = JSON.parse(localStorage.getItem('experience') || '[]');
-  const projects = JSON.parse(localStorage.getItem('projects') || '[]');
-  const skills = JSON.parse(localStorage.getItem('skills') || '[]');
-
-  // Update stats
-  document.getElementById('experience-count').textContent = experience.length;
-  document.getElementById('projects-count').textContent = projects.length;
-  document.getElementById('skills-count').textContent = skills.length;
-
-  // Display recent experience
-  const recentExperienceEl = document.getElementById('recent-experience');
-  if (recentExperienceEl) {
-    if (experience.length > 0) {
-      recentExperienceEl.innerHTML = experience.slice(0, 3).map(exp => `
-        <div class="data-item">
-          <h5>${exp.title}</h5>
-          <p>${exp.company} | ${exp.period}</p>
-        </div>
-      `).join('');
-    } else {
-      recentExperienceEl.innerHTML = '<p>Belum ada data pengalaman</p>';
+    // Helper untuk mendapatkan token (Sesuaikan dengan cara login kamu menyimpan token)
+    function getAuthToken() {
+        // Coba cek localStorage dulu, kalau tidak ada coba sessionStorage
+        return localStorage.getItem('authToken') || sessionStorage.getItem('auth_token');
     }
-  }
 
-  // Display recent projects
-  const recentProjectsEl = document.getElementById('recent-projects');
-  if (recentProjectsEl) {
-    if (projects.length > 0) {
-      recentProjectsEl.innerHTML = projects.slice(0, 3).map(proj => `
-        <div class="data-item">
-          <h5>${proj.title}</h5>
-          <p>${proj.tags.join(', ')}</p>
-        </div>
-      `).join('');
-    } else {
-      recentProjectsEl.innerHTML = '<p>Belum ada data proyek</p>';
+    // Definisi API Wrapper (Scoped dalam IIFE)
+    const DashboardAPI = {
+        async getStats() {
+            const token = getAuthToken();
+            if (!token) throw new Error('Silakan login kembali');
+
+            const res = await fetch('/api/dashboard/stats', { 
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                } 
+            });
+            
+            if (res.status === 401) {
+                window.location.href = '../../index.html'; // Redirect jika token invalid
+                throw new Error('Sesi berakhir');
+            }
+            if (!res.ok) throw new Error('Gagal memuat statistik');
+            
+            return await res.json();
+        },
+        
+        async getRecentActivity() {
+            const token = getAuthToken();
+            if (!token) throw new Error('Silakan login kembali');
+
+            const res = await fetch('/api/dashboard/recent', { 
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                } 
+            });
+
+            if (res.status === 401) {
+                window.location.href = '../../index.html';
+                throw new Error('Sesi berakhir');
+            }
+            if (!res.ok) throw new Error('Gagal memuat aktivitas terbaru');
+            
+            return await res.json();
+        }
+    };
+
+    async function loadDashboardData() {
+        try {
+            // 1. Load Stats
+            const statsResponse = await DashboardAPI.getStats();
+            const stats = statsResponse.data || {};
+            
+            // Safe update DOM elements
+            const updateText = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val ?? 0;
+            };
+
+            updateText('experience-count', stats.experiences_count);
+            updateText('projects-count', stats.projects_count);
+            updateText('skills-count', stats.skills_count);
+            
+            // Update nama admin di header jika tersedia
+            if (stats.admin_name) {
+                const adminNameEl = document.getElementById('admin-name');
+                if (adminNameEl) adminNameEl.textContent = `Halo, ${stats.admin_name}`;
+            }
+            
+            // 2. Load Recent Activity
+            const activityResponse = await DashboardAPI.getRecentActivity();
+            const activities = activityResponse.data || [];
+            
+            const experiences = activities.filter(a => a.type === 'experience');
+            const projects = activities.filter(a => a.type === 'project');
+            
+            // Render Recent Experience
+            const recentExpEl = document.getElementById('recent-experience');
+            if (recentExpEl) {
+                recentExpEl.innerHTML = experiences.length > 0 
+                  ? experiences.slice(0, 3).map(exp => `
+                      <div class="data-item">
+                        <h5>${escapeHtml(exp.posisi)}</h5>
+                        <p>${escapeHtml(exp.perusahaan)} | ${escapeHtml(exp.durasi)}</p>
+                      </div>`).join('')
+                  : '<p class="empty-state">Belum ada data pengalaman</p>';
+            }
+            
+            // Render Recent Projects
+            const recentProjEl = document.getElementById('recent-projects');
+            if (recentProjEl) {
+                recentProjEl.innerHTML = projects.length > 0 
+                  ? projects.slice(0, 3).map(proj => `
+                      <div class="data-item">
+                        <h5>${escapeHtml(proj.judul)}</h5>
+                        <p>${escapeHtml(proj.deskripsi?.substring(0, 80))}...</p>
+                      </div>`).join('')
+                  : '<p class="empty-state">Belum ada data proyek</p>';
+            }
+
+        } catch (error) {
+            console.error('Dashboard Error:', error);
+            const contentEl = document.querySelector('.dashboard-content');
+            if (contentEl) {
+                contentEl.innerHTML = 
+                  `<div class="error-box"><i class="fas fa-exclamation-triangle"></i> Gagal memuat data: ${error.message}</div>`;
+            }
+        }
     }
-  }
 
-  // Display skills
-  const skillsListEl = document.getElementById('skills-list');
-  if (skillsListEl) {
-    if (skills.length > 0) {
-      skillsListEl.innerHTML = skills.map(skill => `
-        <div class="data-item">
-          <h5><i class="${skill.icon}"></i> ${skill.name}</h5>
-        </div>
-      `).join('');
-    } else {
-      skillsListEl.innerHTML = '<p>Belum ada data skills</p>';
+    // Helper keamanan XSS
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
     }
-  }
-}
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-  initializeData();
-  loadDashboardData();
-});
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', async function() {
+        // Pastikan checkAuth() sudah didefinisikan di base.js
+        if (typeof checkAuth === 'function') {
+            await checkAuth();
+        }
+        
+        loadDashboardData();
+        
+        // Handle Logout
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await fetch('/api/logout', { method: 'POST' });
+                } catch (err) {
+                    console.error('Logout API error', err);
+                } finally {
+                    // Bersihkan semua penyimpanan lokal
+                    localStorage.removeItem('authToken');
+                    sessionStorage.clear();
+                    
+                    // Redirect ke index.html (halaman utama)
+                    window.location.href = '../../index.html';
+                }
+            });
+        }
+    });
+
+})();

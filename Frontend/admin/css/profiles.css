@@ -1,26 +1,26 @@
 /* =========================================
-   PROJECTS PAGE SPECIFIC STYLES
+   AKUN PAGE STYLES
    ========================================= */
 
 .page-content {
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1000px; /* Batasi lebar agar tidak terlalu melebar di layar besar */
   margin: 0 auto;
 }
 
-/* --- Form Section --- */
+/* --- Sections --- */
 .form-section,
-.table-section {
+.info-section {
   background: var(--bg-white, #ffffff);
   padding: 2rem;
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   margin-bottom: 2rem;
   border: 1px solid var(--border, #e2e8f0);
 }
 
 .form-section h3,
-.table-section h3 {
+.info-section h3 {
   margin-bottom: 1.5rem;
   font-size: 1.25rem;
   font-weight: 700;
@@ -30,6 +30,7 @@
   display: inline-block;
 }
 
+/* --- Form Styling --- */
 .data-form {
   display: flex;
   flex-direction: column;
@@ -79,7 +80,7 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Style khusus untuk input file */
+/* File Input Styling */
 input[type="file"] {
   padding: 0.5rem;
   background: white;
@@ -102,22 +103,23 @@ input[type="file"]::file-selector-button:hover {
   background: #1d4ed8;
 }
 
-/* Preview Image Container */
+/* Image Preview Container */
 #previewContainer {
   margin-top: 1rem;
-  padding: 1rem;
-  background: #f1f5f9;
-  border-radius: 8px;
-  border: 1px dashed #cbd5e1;
   text-align: center;
+  display: none; /* Hidden by default */
 }
 
-#imagePreview {
-  max-height: 200px;
-  object-fit: contain;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+#preview-img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--primary, #2563eb);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
+/* --- Buttons --- */
 .form-actions {
   display: flex;
   gap: 1rem;
@@ -126,7 +128,6 @@ input[type="file"]::file-selector-button:hover {
   border-top: 1px solid var(--border, #e2e8f0);
 }
 
-/* --- Buttons --- */
 .btn {
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
@@ -158,146 +159,92 @@ input[type="file"]::file-selector-button:hover {
   background: #475569;
 }
 
-.btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none !important;
+/* --- Profile Preview / Info Card --- */
+.profile-header-preview {
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
-/* --- Data Grid (Project Cards) --- */
-.data-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.data-card {
-  background: var(--bg-white, #ffffff);
-  border: 1px solid var(--border, #e2e8f0);
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-.data-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  border-color: var(--primary, #2563eb);
-}
-
-/* Card Image Area */
-.card-img {
-  width: 100%;
-  height: 180px;
+.profile-preview-img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
   object-fit: cover;
-  border-bottom: 1px solid var(--border, #e2e8f0);
+  border: 4px solid var(--primary, #2563eb);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-.card-img-placeholder {
-  width: 100%;
-  height: 180px;
-  background-color: #f1f5f9;
+.profile-placeholder {
+  width: 150px;
+  height: 150px;
+  background: #e2e8f0;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  margin: 0 auto;
   font-size: 3rem;
-  border-bottom: 1px solid var(--border, #e2e8f0);
+  color: #94a3b8;
+  border: 4px solid #cbd5e1;
 }
 
-/* Card Content */
-.card-body {
-  padding: 1.25rem;
-  flex-grow: 1;
-}
-
-.card-body h4 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-dark, #1e293b);
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
-}
-
-.card-body p {
-  font-size: 0.9rem;
-  color: var(--text-gray, #64748b);
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-/* Card Actions Footer */
-.card-actions {
-  padding: 1rem 1.25rem;
+/* Grid Layout for Info Items */
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
   background: #f8fafc;
-  border-top: 1px solid var(--border, #e2e8f0);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.info-item {
   display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.btn-sm {
-  padding: 0.5rem 1rem;
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-label {
   font-size: 0.85rem;
-  border-radius: 6px;
-}
-
-.btn-edit {
-  background: #f59e0b;
-  color: white;
-}
-
-.btn-edit:hover {
-  background: #d97706;
-}
-
-.btn-delete {
-  background: #ef4444;
-  color: white;
-}
-
-.btn-delete:hover {
-  background: #dc2626;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem;
+  font-weight: 600;
   color: var(--text-gray, #64748b);
-  font-style: italic;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 1px dashed #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.error-msg {
-  color: #ef4444;
-  text-align: center;
-  padding: 1rem;
-  background: #fef2f2;
-  border-radius: 8px;
-  border: 1px solid #fecaca;
+.info-value {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-dark, #1e293b);
 }
 
 /* --- Responsive Design --- */
+@media (max-width: 1024px) {
+  .page-content {
+    padding: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .page-content {
     padding: 1rem;
   }
-
+  
   .form-section,
-  .table-section {
+  .info-section {
     padding: 1.5rem;
   }
 
-  .data-grid {
-    grid-template-columns: 1fr; /* Stack cards on mobile */
+  .profile-details-grid {
+    grid-template-columns: 1fr; /* Stack info items on mobile */
   }
   
-  .card-actions {
-    justify-content: space-between;
+  .info-item {
+    padding: 0.5rem 0;
   }
 }

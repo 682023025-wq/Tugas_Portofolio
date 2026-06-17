@@ -1,0 +1,16 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
+            "driver": "TiDB",
+            "connectString": "mysql://Uh9MdmkBuB1c7tH.root:i2QxTyQfbqwe66pA@gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/Portofolio",
+            "name": "DB_Portofolio"
+        }
+    ]
+}

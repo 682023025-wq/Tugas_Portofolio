@@ -4,12 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard - Admin Portofolio</title>
-    <!-- Font Awesome untuk ikon -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Path disesuaikan dengan static_folder='Frontend' di app.py -->
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/dashboard.css" />
   </head>
@@ -25,8 +21,8 @@
           <li><a href="experience.html"><i class="fas fa-briefcase"></i> Experience</a></li>
           <li><a href="projects.html"><i class="fas fa-folder"></i> Projects</a></li>
           <li><a href="skills.html"><i class="fas fa-star"></i> Skills</a></li>
-          <li><a href="akun.html"><i class="fas fa-user"></i> Akun</a></li>
-          <li><a href="../../index.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+          <li><a href="profiles.html"><i class="fas fa-user"></i> Profiles</a></li>
+          <li><a href="../../index.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
       </nav>
     </aside>
@@ -36,36 +32,31 @@
       <header class="top-bar">
         <h1>Dashboard</h1>
         <div class="user-info">
-          <span>Halo, Admin</span>
+          <!-- ID ditambahkan agar bisa diisi JS -->
+          <span id="admin-name">Memuat...</span>
         </div>
       </header>
 
       <div class="dashboard-content">
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-briefcase"></i>
-            </div>
+            <div class="stat-icon"><i class="fas fa-briefcase"></i></div>
             <div class="stat-info">
-              <h3 id="experience-count">0</h3>
+              <h3 id="experience-count">-</h3>
               <p>Pengalaman</p>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-folder"></i>
-            </div>
+            <div class="stat-icon"><i class="fas fa-folder"></i></div>
             <div class="stat-info">
-              <h3 id="projects-count">0</h3>
+              <h3 id="projects-count">-</h3>
               <p>Proyek</p>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-star"></i>
-            </div>
+            <div class="stat-icon"><i class="fas fa-star"></i></div>
             <div class="stat-info">
-              <h3 id="skills-count">0</h3>
+              <h3 id="skills-count">-</h3>
               <p>Skills</p>
             </div>
           </div>
@@ -74,15 +65,9 @@
         <div class="quick-actions">
           <h3>Aksi Cepat</h3>
           <div class="action-buttons">
-            <a href="experience.html" class="btn btn-primary">
-              <i class="fas fa-plus"></i> Tambah Pengalaman
-            </a>
-            <a href="projects.html" class="btn btn-primary">
-              <i class="fas fa-plus"></i> Tambah Proyek
-            </a>
-            <a href="skills.html" class="btn btn-primary">
-              <i class="fas fa-plus"></i> Tambah Skill
-            </a>
+            <a href="experience.html" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Pengalaman</a>
+            <a href="projects.html" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Proyek</a>
+            <a href="skills.html" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Skill</a>
           </div>
         </div>
 
@@ -97,15 +82,13 @@
               <h4><i class="fas fa-folder"></i> Proyek Terbaru</h4>
               <div id="recent-projects" class="data-list"></div>
             </section>
-            <section class="data-section">
-              <h4><i class="fas fa-star"></i> Skills</h4>
-              <div id="skills-list" class="data-list"></div>
-            </section>
           </div>
         </div>
       </div>
     </main>
 
+    <!-- Script diperbaiki: dipisah dan path disesuaikan -->
+    <script src="js/api.js"></script>
     <script src="js/base.js"></script>
     <script src="js/dashboard.js"></script>
   </body>
